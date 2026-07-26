@@ -1,0 +1,39 @@
+# Unreal Engine
+
+Binaries/
+Build/
+DerivedDataCache/
+Intermediate/
+Saved/
+
+# Visual Studio
+.vs/
+.vscode/
+*.sln
+*.VC.db
+*.VC.opendb
+*.suo
+*.user
+
+# Rider
+.idea/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Ignore all Unreal Content
+Content/*
+
+# Keep portfolio content
+!Content/Animations/
+!Content/UI/
+!Content/Blueprints/
+
+# Keep files inside these folders
+!Content/Animations/**
+!Content/UI/**
+!Content/Blueprints/**

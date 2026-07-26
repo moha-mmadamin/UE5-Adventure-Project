@@ -1,0 +1,7 @@
+# Unreal Engine files
+*.uasset binary
+*.umap binary
+*.uproject text
+*.ini text
+*.cpp text
+*.h text
