@@ -232,8 +232,7 @@ void AEcho::FinishEquipping()
 void AEcho::FinishReloading()
 {
     IsAiming ? ActionState = EActionState::EAS_Aiming : ActionState = EActionState::EAS_Unoccupied;
-    EquippedWeapon->SetCurrentAmmo(EquippedWeapon->GetMagazineCapacity());
-    EquippedWeapon->OnAmmoChanged.Broadcast(EquippedWeapon->GetCurrentAmmo(), EquippedWeapon->GetReserveAmmo());
+    EquippedWeapon->ReloadAmmo();
 }
 void AEcho::SpawnDefaultWeapon()
 {

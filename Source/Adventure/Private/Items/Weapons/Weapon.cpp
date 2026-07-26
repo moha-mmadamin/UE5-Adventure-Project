@@ -44,8 +44,21 @@ void AWeapon::Shoot()
 	//DrawDebugLine(
     //    GetWorld(), BarrelLocation, TargetPoint, FColor::Red, false, 5.f, 0, 2.f);
 }
+void AWeapon::ReloadAmmo()
+{
+	const int32 NeededAmmo = MagazineCapacity - CurrentAmmo;
+	const int32 AmmoToLoad = FMath::Min(NeededAmmo, ReserveAmmo);
+
+	CurrentAmmo += AmmoToLoad;
+	ReserveAmmo -= AmmoToLoad;
+
+	OnAmmoChanged.Broadcast(CurrentAmmo, ReserveAmmo);
+}
 void AWeapon::StartReload()
 {
+	if (CurrentAmmo == MagazineCapacity) return;
+	if (ReserveAmmo <= 0) return;
+
 	Echo->PlayReloadMontage(FName("Reload"));
 	Echo->SetActionState(EActionState::EAS_Reloading);
 }

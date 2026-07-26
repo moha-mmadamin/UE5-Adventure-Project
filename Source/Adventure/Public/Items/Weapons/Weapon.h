@@ -27,6 +27,7 @@ public:
 	void Equip(USceneComponent* Parent, const FName& SocketName, AActor* NewOwner, APawn* NewInstigator);
 	void AttachMeshToSocket(USceneComponent* Parent, const FName& SocketName);
 	void Shoot();
+	void ReloadAmmo();
 
 	UPROPERTY(BlueprintAssignable)
 	FOnAmmoChanged OnAmmoChanged;
@@ -35,13 +36,13 @@ protected:
 	virtual void BeginPlay() override;
 
 	UPROPERTY(VisibleAnywhere)
-	int CurrentAmmo = 10;
+	int CurrentAmmo = 15;
 
 	UPROPERTY(VisibleAnywhere, Category="Ammo")
-	int MagazineCapacity = 10;
+	int MagazineCapacity = 15;
 
 	UPROPERTY(VisibleAnywhere, Category = "Ammo")
-	int ReserveAmmo = 90;
+	int ReserveAmmo = 45;
 
 	UPROPERTY(VisibleAnywhere)
 	AEcho* Echo;
