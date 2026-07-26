@@ -2,8 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "Items/Item.h"
+#include "TimerManager.h"
 #include "Weapon.generated.h"
-
 
 
 class UBoxComponent;
@@ -16,7 +16,6 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	int, MaxAmmo
 );
 
-
 UCLASS()
 class ADVENTURE_API AWeapon : public AItem
 {
@@ -26,23 +25,25 @@ public:
 	AWeapon();
 	void Equip(USceneComponent* Parent, const FName& SocketName, AActor* NewOwner, APawn* NewInstigator);
 	void AttachMeshToSocket(USceneComponent* Parent, const FName& SocketName);
-	void Shoot();
+	bool TryFire();
 	void ReloadAmmo();
+	
 
 	UPROPERTY(BlueprintAssignable)
 	FOnAmmoChanged OnAmmoChanged;
 
 protected:
 	virtual void BeginPlay() override;
+	FTimerHandle FireRateHandle;
 
 	UPROPERTY(VisibleAnywhere)
-	int CurrentAmmo = 15;
+	int32 CurrentAmmo = 15;
 
 	UPROPERTY(VisibleAnywhere, Category="Ammo")
-	int MagazineCapacity = 15;
+	int32 MagazineCapacity = 15;
 
 	UPROPERTY(VisibleAnywhere, Category = "Ammo")
-	int ReserveAmmo = 45;
+	int32 ReserveAmmo = 45;
 
 	UPROPERTY(VisibleAnywhere)
 	AEcho* Echo;
@@ -52,10 +53,16 @@ private:
 	void SpawnParticle();
 	void ConsumeAmmo();
 	void FireTrace();
+	void ResetFire();
+	void StartFireCooldown();
+	bool bCanFire = true;
 	bool CanShoot() const;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Effects")
 	UNiagaraSystem* FireEffect;
+
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+	float FireRate = 0.5f;
 
 public:
 	FORCEINLINE int GetCurrentAmmo() const { return CurrentAmmo; }

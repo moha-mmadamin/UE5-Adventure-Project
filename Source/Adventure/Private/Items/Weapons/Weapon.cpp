@@ -26,26 +26,28 @@ void AWeapon::AttachMeshToSocket(USceneComponent* Parent, const FName& SocketNam
 	FAttachmentTransformRules TransformRules(EAttachmentRule::SnapToTarget, true);
 	ItemMesh->AttachToComponent(Parent, TransformRules, SocketName);
 }
-void AWeapon::Shoot()
+bool AWeapon::TryFire()
 {	
-	if(!CanShoot()) {return;}
-
 	if(CurrentAmmo <= 0)
 	{
 		StartReload();
-		return;
+		return false;
 	}
+
+	if(!CanShoot()) return false;
+
 	FireTrace();
 	SpawnParticle();
 	ConsumeAmmo();
-	
+	StartFireCooldown();
 
-	
-	//DrawDebugLine(
-    //    GetWorld(), BarrelLocation, TargetPoint, FColor::Red, false, 5.f, 0, 2.f);
+	return true;
 }
 void AWeapon::ReloadAmmo()
 {
+	if (CurrentAmmo >= MagazineCapacity) return;
+	if(ReserveAmmo <= 0) return;
+
 	const int32 NeededAmmo = MagazineCapacity - CurrentAmmo;
 	const int32 AmmoToLoad = FMath::Min(NeededAmmo, ReserveAmmo);
 
@@ -87,10 +89,32 @@ void AWeapon::FireTrace()
 
 	FVector TargetPoint = Hit.bBlockingHit ? Hit.ImpactPoint : CameraEnd;
 	FRotator BarrelRotation = (TargetPoint - BarrelLocation).Rotation();
+
+	//DrawDebugLine(
+    //    GetWorld(), BarrelLocation, TargetPoint, FColor::Red, false, 5.f, 0, 2.f);
+}
+void AWeapon::ResetFire()
+{
+	bCanFire = true;
+}
+void AWeapon::StartFireCooldown()
+{
+	bCanFire = false;
+
+	GetWorld()->GetTimerManager().SetTimer(
+        FireRateHandle,
+        this,
+        &AWeapon::ResetFire,
+        FireRate,
+        false
+    );
 }
 bool AWeapon::CanShoot() const
 {
-	return Echo && Echo->GetActionState() == EActionState::EAS_Aiming;
+	return Echo && 
+	Echo->GetActionState() == EActionState::EAS_Aiming &&
+	bCanFire &&
+	CurrentAmmo > 0;
 }
 void AWeapon::SpawnParticle()
 {

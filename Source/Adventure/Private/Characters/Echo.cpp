@@ -101,18 +101,26 @@ void AEcho::EKeyPressed()
 void AEcho::Fire()
 {
     if(CharacterState != ECharacterState::ECS_EquippedGun || ActionState == EActionState::EAS_Reloading) return;
+    //if (!EquippedWeapon->CanShoot()) return;
 
-    PlayFireMontage(FName("Fire"));
-    if(ActionState == EActionState::EAS_Aiming)
+    if(EquippedWeapon->TryFire())
     {
-        EquippedWeapon->Shoot();
+        PlayFireMontage(FName("Fire"));
     }
+
+    //PlayFireMontage(FName("Fire"));
+    //EquippedWeapon->Shoot();
+    //if(ActionState == EActionState::EAS_Aiming)
+    //{
+    //    
+    //}
+
 }
 void AEcho::Aim()
 {
     ActionState = EActionState::EAS_Aiming;
     IsAiming = true;
-    if(AmmoWidget)
+    if(AmmoWidget && CharacterState != ECharacterState::ECS_Unequipped)
     {
         AmmoWidget->SetVisibility(ESlateVisibility::Visible);
     }
