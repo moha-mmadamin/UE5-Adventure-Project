@@ -36,4 +36,4 @@ Content/*
 # Keep files inside these folders
 !Content/Animations/**
 !Content/UI/**
-!Content/Blueprints/**
+!Content/Blueprints/**.vsconfig
