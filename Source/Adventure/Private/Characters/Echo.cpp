@@ -29,6 +29,8 @@ AEcho::AEcho()
     Eyebrows = CreateDefaultSubobject<UGroomComponent>(TEXT("Eyebrows"));
     Eyebrows->SetupAttachment(GetMesh());
     Eyebrows->AttachmentName = FString("head");
+
+    HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 };
 void AEcho::BeginPlay()
 {
@@ -50,6 +52,15 @@ void AEcho::BeginPlay()
             AmmoWidget->AddToViewport();
             AmmoWidget->BindWeapon(EquippedWeapon);
             AmmoWidget->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
+    if(HealthWidgetClass)
+    {
+        HealthWidget = CreateWidget<UHealthBarWidget>(GetWorld(), HealthWidgetClass);
+        if(HealthWidget)
+        {
+            HealthWidget->AddToViewport();
+            HealthWidget->SetHealthComponent(HealthComponent);
         }
     }
 }
@@ -101,20 +112,11 @@ void AEcho::EKeyPressed()
 void AEcho::Fire()
 {
     if(CharacterState != ECharacterState::ECS_EquippedGun || ActionState == EActionState::EAS_Reloading) return;
-    //if (!EquippedWeapon->CanShoot()) return;
 
     if(EquippedWeapon->TryFire())
     {
         PlayFireMontage(FName("Fire"));
     }
-
-    //PlayFireMontage(FName("Fire"));
-    //EquippedWeapon->Shoot();
-    //if(ActionState == EActionState::EAS_Aiming)
-    //{
-    //    
-    //}
-
 }
 void AEcho::Aim()
 {

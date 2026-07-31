@@ -6,6 +6,8 @@
 #include "EchoAnimInstance.h"
 #include "InputActionValue.h"
 #include "UI/AmmoWidget.h"
+#include "UI/HealthBarWidget.h"
+#include "Components/HealthComponent.h"
 #include "Echo.generated.h"
 
 
@@ -140,6 +142,13 @@ private:
 
 	UAmmoWidget* AmmoWidget;
 
+	UPROPERTY(VisibleAnywhere, Category = "Health")
+    UHealthComponent* HealthComponent;
+
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<UHealthBarWidget> HealthWidgetClass;
+
+    UHealthBarWidget* HealthWidget;
 
 public:
 	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
