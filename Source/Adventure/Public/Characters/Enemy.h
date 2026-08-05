@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "EnemyTypes.h"
 #include "Enemy.generated.h"
 
 UCLASS()
@@ -17,6 +18,11 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-private:	
+private:
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	EEnemyState EnemyState = EEnemyState::EES_Idle;
+
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	EEnemyDetectionType EnemyDetectionType = EEnemyDetectionType::EDT_None;
 
 };
