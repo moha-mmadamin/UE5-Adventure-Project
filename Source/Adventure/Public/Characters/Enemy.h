@@ -3,7 +3,10 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "EnemyTypes.h"
+#include "Perception/AIPerceptionTypes.h"
 #include "Enemy.generated.h"
+
+class UAIPerceptionComponent;
 
 UCLASS()
 class ADVENTURE_API AEnemy : public ACharacter
@@ -29,6 +32,11 @@ protected:
 private:
 	void UpdateEnemyState();
 
+	UFUNCTION()
+	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
+	UAIPerceptionComponent* AIPerceptionComponent;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	EEnemyState EnemyState = EEnemyState::EES_Idle;
@@ -36,7 +44,7 @@ private:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	EEnemyDetectionType EnemyDetectionType = EEnemyDetectionType::EDT_None;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	AActor* CurrentTarget = nullptr;
 
 	UPROPERTY()
