@@ -1,4 +1,6 @@
 #include "Characters/Enemy.h"
+#include "AIController.h"
+#include "Navigation/PathFollowingComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISense.h"
 #include "Perception/AISense_Sight.h"
@@ -27,11 +29,57 @@ void AEnemy::BeginPlay()
             &AEnemy::OnTargetPerceptionUpdated
         );
     }
+
+    EnemyController = Cast<AAIController>(GetController());
+    MoveToTarget(PatrolTarget);
+}
+void AEnemy::MoveToTarget(AActor* Target)
+{
+    if(EnemyController == nullptr || Target == nullptr) return;
+    FAIMoveRequest MoveRequest;
+    MoveRequest.SetGoalActor(Target);
+    MoveRequest.SetAcceptanceRadius(15.f);
+    EnemyController->MoveTo(MoveRequest);
+}
+AActor* AEnemy::ChoosePatrolTarget()
+{
+    TArray<AActor*> ValidTargets;
+    for (AActor* Target : PatrolTargets)
+    {
+        if(Target != PatrolTarget)
+        {
+            ValidTargets.AddUnique(Target);
+        }
+    }
+
+    const int32 NumPatrolTargets = ValidTargets.Num();
+    if(NumPatrolTargets > 0)
+    {
+        const int32 TargetSelection = FMath::RandRange(0, NumPatrolTargets - 1);
+        return ValidTargets[TargetSelection];
+    }
+    return nullptr;
+}
+bool AEnemy::InTargetRange(AActor* Target, double Radius)
+{
+    if (Target == nullptr) return false;
+    const double DistanceToTarget = (Target->GetActorLocation() - GetActorLocation()).Size();
+    return DistanceToTarget <= Radius;
 }
 void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+    
+    CheckPatrolTarget();
+}
+void AEnemy::CheckPatrolTarget()
+{
+    if(InTargetRange(PatrolTarget, PatrolRadius))
+    {
+        PatrolTarget = ChoosePatrolTarget();
+        const float WaitTime = FMath::RandRange(WaitMin, WaitMax);
+        GetWorldTimerManager().SetTimer(PatrolTimer, this, &AEnemy::PatrolTimerFinished, WaitTime);
+    }
 }
 void AEnemy::UpdateEnemyState()
 {
@@ -69,6 +117,10 @@ void AEnemy::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
     {
         HandleDamage(Actor);
     }
+}
+void AEnemy::PatrolTimerFinished()
+{
+    MoveToTarget(PatrolTarget);
 }
 void AEnemy::HandleSight(AActor* DetectedActor)
 {

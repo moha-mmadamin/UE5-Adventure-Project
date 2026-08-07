@@ -7,6 +7,7 @@
 #include "Enemy.generated.h"
 
 class UAIPerceptionComponent;
+class AAIController;
 
 UCLASS()
 class ADVENTURE_API AEnemy : public ACharacter
@@ -17,8 +18,13 @@ public:
 	AEnemy();
 	virtual void Tick(float DeltaTime) override;
 
+	void CheckPatrolTarget();
+
 protected:
 	virtual void BeginPlay() override;
+	void MoveToTarget(AActor* Target);
+	AActor* ChoosePatrolTarget();
+	bool InTargetRange(AActor* Target, double Radius);
 
 	UFUNCTION(BlueprintCallable, Category="AI")
 	void HandleSight(AActor* DetectedActor);
@@ -49,4 +55,33 @@ private:
 
 	UPROPERTY()
 	FVector LastKnownLocation = FVector::ZeroVector;
+
+	UPROPERTY(EditAnywhere)
+	double CombatRadius = 500.f;
+
+	/*
+	Navigation
+	*/
+
+	UPROPERTY()
+	AAIController* EnemyController;
+
+	//Current patrol target
+	UPROPERTY(EditInstanceOnly, Category = "AI Navigation")
+	AActor* PatrolTarget;
+
+	UPROPERTY(EditInstanceOnly, Category = "AI Navigation")
+	TArray<AActor*> PatrolTargets;
+
+	UPROPERTY(EditAnywhere)
+	double PatrolRadius = 200.f;
+
+	FTimerHandle PatrolTimer;
+	void PatrolTimerFinished();
+
+	UPROPERTY(EditAnywhere, Category = "AI Navigation")
+	float WaitMin = 5.f;
+
+	UPROPERTY(EditAnywhere, Category = "AI Navigation")
+	float WaitMax = 10.f;
 };
