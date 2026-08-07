@@ -18,8 +18,6 @@ public:
 	AEnemy();
 	virtual void Tick(float DeltaTime) override;
 
-	void CheckPatrolTarget();
-
 protected:
 	virtual void BeginPlay() override;
 	void MoveToTarget(AActor* Target);
@@ -37,6 +35,7 @@ protected:
 
 private:
 	void UpdateEnemyState();
+	void CheckPatrolTarget();
 
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
@@ -84,4 +83,10 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "AI Navigation")
 	float WaitMax = 10.f;
+
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float PatrolSpeed = 100.f;
+
+	UPROPERTY(EditAnywhere, Category = "Movement")
+	float ChaseSpeed = 400.f;
 };

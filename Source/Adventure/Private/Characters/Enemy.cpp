@@ -22,6 +22,8 @@ void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 
+    GetCharacterMovement()->MaxWalkSpeed = PatrolSpeed;
+
     if(AIPerceptionComponent)
     {
         AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(
@@ -32,6 +34,12 @@ void AEnemy::BeginPlay()
 
     EnemyController = Cast<AAIController>(GetController());
     MoveToTarget(PatrolTarget);
+}
+void AEnemy::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+    
+    CheckPatrolTarget();
 }
 void AEnemy::MoveToTarget(AActor* Target)
 {
@@ -66,12 +74,6 @@ bool AEnemy::InTargetRange(AActor* Target, double Radius)
     const double DistanceToTarget = (Target->GetActorLocation() - GetActorLocation()).Size();
     return DistanceToTarget <= Radius;
 }
-void AEnemy::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-    
-    CheckPatrolTarget();
-}
 void AEnemy::CheckPatrolTarget()
 {
     if(InTargetRange(PatrolTarget, PatrolRadius))
@@ -87,14 +89,17 @@ void AEnemy::UpdateEnemyState()
     {
         case EEnemyDetectionType::EDT_Sight:
             EnemyState = EEnemyState::EES_Chase;
+            GetCharacterMovement()->MaxWalkSpeed = ChaseSpeed;
             break;
 
         case EEnemyDetectionType::EDT_Hearing:
-            EnemyState = EEnemyState::EES_Investigate;
+            EnemyState = EEnemyState::EES_Chase;
+            GetCharacterMovement()->MaxWalkSpeed = ChaseSpeed;
             break;
 
         case EEnemyDetectionType::EDT_Damage:
             EnemyState = EEnemyState::EES_Chase;
+            GetCharacterMovement()->MaxWalkSpeed = ChaseSpeed;
             break;
 
         default:
@@ -125,21 +130,17 @@ void AEnemy::PatrolTimerFinished()
 void AEnemy::HandleSight(AActor* DetectedActor)
 {
     if(!DetectedActor) return;
+
     EnemyDetectionType = EEnemyDetectionType::EDT_Sight;
-
     CurrentTarget = DetectedActor;
-
     LastKnownLocation = DetectedActor->GetActorLocation();
-
     UpdateEnemyState();
-    UE_LOG(LogTemp, Warning, TEXT("Enemy detected %s by sight."), *DetectedActor->GetName());
+    //UE_LOG(LogTemp, Warning, TEXT("Enemy detected %s by sight."), *DetectedActor->GetName());
 }
 void AEnemy::HandleHearing(const FVector& Location)
 {
     EnemyDetectionType = EEnemyDetectionType::EDT_Hearing;
-
     LastKnownLocation = Location;
-
     UpdateEnemyState();
 }
 void AEnemy::HandleDamage(AActor* DamageCauser)
@@ -147,9 +148,7 @@ void AEnemy::HandleDamage(AActor* DamageCauser)
     if(!DamageCauser) return;
 
     EnemyDetectionType = EEnemyDetectionType::EDT_Damage;
-
     CurrentTarget = DamageCauser;
-
     UpdateEnemyState();
 }
 
