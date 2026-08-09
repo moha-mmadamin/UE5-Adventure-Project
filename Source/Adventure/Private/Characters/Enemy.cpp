@@ -6,6 +6,7 @@
 #include "Perception/AISense_Sight.h"
 #include "Perception/AISense_Hearing.h"
 #include "Perception/AISense_Damage.h"
+#include "Items/Weapons/Weapon.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 AEnemy::AEnemy()
@@ -16,11 +17,25 @@ AEnemy::AEnemy()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
     
+    HolsterMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HolsterMesh"));
+    //HolsterMesh->SetupAttachment(GetMesh(), TEXT("HolsterSocket"));
+    HolsterMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    HolsterMesh->SetGenerateOverlapEvents(false);
+    
     AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComponent"));
 }
 void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+
+    if (GetMesh() && HolsterMesh)
+    {
+        HolsterMesh->AttachToComponent(
+            GetMesh(),
+            FAttachmentTransformRules::SnapToTargetIncludingScale,
+            TEXT("HolsterSocket")
+        );
+    }
 
     GetCharacterMovement()->MaxWalkSpeed = PatrolSpeed;
 
@@ -151,4 +166,3 @@ void AEnemy::HandleDamage(AActor* DamageCauser)
     CurrentTarget = DamageCauser;
     UpdateEnemyState();
 }
-

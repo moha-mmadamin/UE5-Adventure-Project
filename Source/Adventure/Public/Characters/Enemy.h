@@ -1,16 +1,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "BaseCharacter.h"
 #include "EnemyTypes.h"
 #include "Perception/AIPerceptionTypes.h"
+#include "Components/StaticMeshComponent.h"
 #include "Enemy.generated.h"
 
 class UAIPerceptionComponent;
 class AAIController;
+class AWeapon;
+class UAnimMontage;
 
 UCLASS()
-class ADVENTURE_API AEnemy : public ACharacter
+class ADVENTURE_API AEnemy : public ABaseCharacter
 {
 	GENERATED_BODY()
 
@@ -23,6 +26,10 @@ protected:
 	void MoveToTarget(AActor* Target);
 	AActor* ChoosePatrolTarget();
 	bool InTargetRange(AActor* Target, double Radius);
+
+	/*
+	AI senses
+	*/
 
 	UFUNCTION(BlueprintCallable, Category="AI")
 	void HandleSight(AActor* DetectedActor);
@@ -57,6 +64,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	double CombatRadius = 500.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess="true"))
+	UStaticMeshComponent* HolsterMesh;
 
 	/*
 	Navigation

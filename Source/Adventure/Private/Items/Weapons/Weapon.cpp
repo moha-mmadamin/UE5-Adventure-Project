@@ -1,8 +1,9 @@
 #include "Items/Weapons/Weapon.h"
 #include "NiagaraSystem.h"
-#include "Characters/Echo.h"
 #include "NiagaraFunctionLibrary.h"
 #include "DrawDebugHelpers.h"
+#include "GameFramework/Pawn.h"
+#include "GameFramework/Controller.h"
 
 AWeapon::AWeapon()
 {
@@ -19,7 +20,6 @@ void AWeapon::Equip(USceneComponent* Parent, const FName& SocketName, AActor* Ne
 	SetOwner(NewOwner);
 	SetInstigator(NewInstigator);
 	AttachMeshToSocket(Parent, SocketName);
-	Echo = Cast<AEcho>(NewOwner);
 }
 void AWeapon::AttachMeshToSocket(USceneComponent* Parent, const FName& SocketName)
 {
@@ -28,12 +28,6 @@ void AWeapon::AttachMeshToSocket(USceneComponent* Parent, const FName& SocketNam
 }
 bool AWeapon::TryFire()
 {	
-	if(CurrentAmmo <= 0)
-	{
-		StartReload();
-		return false;
-	}
-
 	if(!CanShoot()) return false;
 
 	FireTrace();
@@ -56,13 +50,9 @@ void AWeapon::ReloadAmmo()
 
 	OnAmmoChanged.Broadcast(CurrentAmmo, ReserveAmmo);
 }
-void AWeapon::StartReload()
+bool AWeapon::CanReload() const
 {
-	if (CurrentAmmo == MagazineCapacity) return;
-	if (ReserveAmmo <= 0) return;
-
-	Echo->PlayReloadMontage(FName("Reload"));
-	Echo->SetActionState(EActionState::EAS_Reloading);
+	return CurrentAmmo < MagazineCapacity && ReserveAmmo > 0;
 }
 void AWeapon::ConsumeAmmo()
 {
@@ -76,8 +66,12 @@ void AWeapon::FireTrace()
 	FRotator CameraRotation;
 	FVector CameraLocation;
 
-    AController* Controller = Echo->GetController();
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+    if(!OwnerPawn) return;
+
+    AController* Controller = OwnerPawn->GetController();
 	if (!Controller) return;
+
 	Controller->GetPlayerViewPoint(CameraLocation, CameraRotation);
 
 	FVector CameraEnd = CameraLocation + CameraRotation.Vector() * 15000.f;
@@ -95,11 +89,11 @@ void AWeapon::FireTrace()
 }
 void AWeapon::ResetFire()
 {
-	bCanFire = true;
+	CanFire = true;
 }
 void AWeapon::StartFireCooldown()
 {
-	bCanFire = false;
+	CanFire = false;
 
 	GetWorld()->GetTimerManager().SetTimer(
         FireRateHandle,
@@ -111,10 +105,7 @@ void AWeapon::StartFireCooldown()
 }
 bool AWeapon::CanShoot() const
 {
-	return Echo && 
-	Echo->GetActionState() == EActionState::EAS_Aiming &&
-	bCanFire &&
-	CurrentAmmo > 0;
+	return CanFire && CurrentAmmo > 0;
 }
 void AWeapon::SpawnParticle()
 {

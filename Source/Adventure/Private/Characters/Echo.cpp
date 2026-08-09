@@ -35,7 +35,6 @@ AEcho::AEcho()
 void AEcho::BeginPlay()
 {
     Super::BeginPlay();
-    SpawnDefaultWeapon();
 
     if(APlayerController* PlayerController = Cast<APlayerController>(Controller))
     {
@@ -111,17 +110,15 @@ void AEcho::EKeyPressed()
 }
 void AEcho::Fire()
 {
-    if(CharacterState != ECharacterState::ECS_EquippedGun || ActionState == EActionState::EAS_Reloading) return;
+    if(!CanFire()) return;
 
-    if(EquippedWeapon->TryFire())
-    {
-        PlayFireMontage(FName("Fire"));
-    }
+    Super::Fire();
 }
 void AEcho::Aim()
 {
+    Super::Aim();
+
     ActionState = EActionState::EAS_Aiming;
-    IsAiming = true;
     if(AmmoWidget && CharacterState != ECharacterState::ECS_Unequipped)
     {
         AmmoWidget->SetVisibility(ESlateVisibility::Visible);
@@ -129,8 +126,9 @@ void AEcho::Aim()
 }
 void AEcho::StopAiming()
 {
+    Super::StopAiming();
+
     ActionState = EActionState::EAS_Unoccupied;
-    IsAiming = false;
     if(AmmoWidget)
     {
         AmmoWidget->SetVisibility(ESlateVisibility::Hidden);
@@ -140,53 +138,36 @@ void AEcho::Sprint()
 {
     if(ActionState == EActionState::EAS_Aiming) return;
 
-    GetCharacterMovement()->MaxWalkSpeed = 900.f;
+    SetMovementSpeed(900.f);
 }
 void AEcho::StopSprint()
 {
-    GetCharacterMovement()->MaxWalkSpeed = 150.f;
+    SetMovementSpeed(150.f);
+}
+bool AEcho::CanFire() const
+{
+    return CharacterState == ECharacterState::ECS_EquippedGun &&
+           ActionState == EActionState::EAS_Aiming &&
+           EquippedWeapon != nullptr;
+}
+bool AEcho::CanReload() const
+{
+    return CharacterState == ECharacterState::ECS_EquippedGun &&
+           EquippedWeapon &&
+           EquippedWeapon->CanReload();
 }
 void AEcho::Reload()
 {
-    if (CharacterState != ECharacterState::ECS_EquippedGun) return;
+    if(!CanReload()) return;
+ 
     ActionState = EActionState::EAS_Reloading;
-    PlayReloadMontage(FName("Reload"));
+    Super::Reload();
 }
 void AEcho::EquipWeapon(AWeapon* Weapon)
 {
-    Weapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
-    CharacterState = ECharacterState::ECS_EquippedGun;
-    OverlappingItem = nullptr;
-    EquippedWeapon = Weapon;
-}
-void AEcho::PlayEquipMontage(const FName& SectionName)
-{
-    UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-    if(AnimInstance && EquipMontage)
-    {
-        AnimInstance->Montage_Play(EquipMontage);
-        AnimInstance->Montage_JumpToSection(SectionName, EquipMontage);
-    }
-}
-void AEcho::PlayFireMontage(const FName& SectionName)
-{
-    if(ActionState != EActionState::EAS_Aiming) return;
+    Super::EquipWeapon(Weapon);
 
-    UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-    if(AnimInstance && FireMontage)
-    {
-        AnimInstance->Montage_Play(FireMontage);
-        AnimInstance->Montage_JumpToSection(SectionName, FireMontage);
-    }
-}
-void AEcho::PlayReloadMontage(const FName & SectionName)
-{
-    UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-    if(AnimInstance && ReloadMontage)
-    {
-        AnimInstance->Montage_Play(ReloadMontage);
-        AnimInstance->Montage_JumpToSection(SectionName, ReloadMontage);
-    }
+    CharacterState = ECharacterState::ECS_EquippedGun;
 }
 void AEcho::Move(const FInputActionValue& Value)
 {
@@ -211,47 +192,31 @@ void AEcho::Jump()
 {
     Super::Jump();
 }
-void AEcho::Disarm()
-{
-    if(EquippedWeapon)
-    {
-        EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("PistolSocket"));
-    }
-}
-void AEcho::Arm()
-{
-    if(EquippedWeapon)
-    {
-        EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocket"));
-    }
-}
 bool AEcho::CanDisarm()
 {
     return ActionState == EActionState::EAS_Unoccupied &&
         CharacterState != ECharacterState::ECS_Unequipped;
+}
+void AEcho::FinishEquipping_Implementation()
+{
+    Super::FinishEquipping_Implementation();
+
+    ActionState = EActionState::EAS_Unoccupied;
+}
+void AEcho::FinishReloading_Implementation()
+{
+    Super::FinishReloading_Implementation();
+
+    IsAiming ? ActionState = EActionState::EAS_Aiming : ActionState = EActionState::EAS_Unoccupied;
 }
 bool AEcho::CanArm()
 {
     return ActionState == EActionState::EAS_Unoccupied &&
         CharacterState == ECharacterState::ECS_Unequipped && EquippedWeapon;
 }
-void AEcho::FinishEquipping()
-{
-    ActionState = EActionState::EAS_Unoccupied;
-}
-void AEcho::FinishReloading()
-{
-    IsAiming ? ActionState = EActionState::EAS_Aiming : ActionState = EActionState::EAS_Unoccupied;
-    EquippedWeapon->ReloadAmmo();
-}
 void AEcho::SpawnDefaultWeapon()
 {
-    UWorld* World = GetWorld();
-    if(World)
-    {
-        AWeapon* DefaultWeapon = World->SpawnActor<AWeapon>(WeaponClass);
-        DefaultWeapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
-        EquippedWeapon = DefaultWeapon;
-        CharacterState = ECharacterState::ECS_EquippedGun;
-    }
+    Super::SpawnDefaultWeapon();
+
+    CharacterState = ECharacterState::ECS_EquippedGun;
 }

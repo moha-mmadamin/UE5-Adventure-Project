@@ -27,8 +27,8 @@ public:
 	void AttachMeshToSocket(USceneComponent* Parent, const FName& SocketName);
 	bool TryFire();
 	void ReloadAmmo();
+	bool CanReload() const;
 	
-
 	UPROPERTY(BlueprintAssignable)
 	FOnAmmoChanged OnAmmoChanged;
 
@@ -45,18 +45,15 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Ammo")
 	int32 ReserveAmmo = 45;
 
-	UPROPERTY(VisibleAnywhere)
-	AEcho* Echo;
-
 private:
-	void StartReload();
 	void SpawnParticle();
 	void ConsumeAmmo();
 	void FireTrace();
 	void ResetFire();
 	void StartFireCooldown();
-	bool bCanFire = true;
+	bool CanFire = true;
 	bool CanShoot() const;
+
 
 	UPROPERTY(EditDefaultsOnly, Category = "Effects")
 	UNiagaraSystem* FireEffect;

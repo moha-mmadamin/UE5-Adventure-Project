@@ -2,7 +2,7 @@
 
 #include "CharacterTypes.h"
 #include "CoreMinimal.h"
-#include "GameFramework/Character.h"
+#include "BaseCharacter.h"
 #include "EchoAnimInstance.h"
 #include "InputActionValue.h"
 #include "UI/AmmoWidget.h"
@@ -16,13 +16,12 @@ class UCameraComponent;
 class UGroomComponent;
 class AWeapon;
 class UAnimMontage;
-class AItem;
 class UInputMappingContext;
 class UInputAction;
 class AActor;
 
 UCLASS()
-class ADVENTURE_API AEcho : public ACharacter
+class ADVENTURE_API AEcho : public ABaseCharacter
 {
 	GENERATED_BODY()
 public:
@@ -30,34 +29,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
-    bool bHasWeapon = true;
-
-	
-	void PlayReloadMontage(const FName& SectionName);
-
  protected:
 	virtual void BeginPlay() override;
-	void EquipWeapon(AWeapon* Weapon);
-	void PlayEquipMontage(const FName& SectionName);
-	void PlayFireMontage(const FName& SectionName);
-	bool CanArm();
-	bool CanDisarm();
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool IsAiming = false;
-
-	UFUNCTION(BlueprintCallable)
-	void FinishEquipping();
-
-	UFUNCTION(BlueprintCallable)
-	void FinishReloading();
-	
-	UFUNCTION(BlueprintCallable)
-	void Arm();
-	
-	UFUNCTION(BlueprintCallable)
-	void Disarm();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USpringArmComponent* CameraBoom;
@@ -73,12 +46,10 @@ public:
 	void Look(const FInputActionValue& Value);
 	virtual void Jump() override;
 	void EKeyPressed();
-	void Fire();
-	void Aim();
-	void StopAiming();
-	void Sprint();
-	void StopSprint();
-    void Reload();
+
+	/*
+	Input Actions
+	*/
 
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction* MovementAction;
@@ -105,7 +76,20 @@ public:
 	UInputAction* ReloadAction;
 
 private:
-	void SpawnDefaultWeapon();
+	virtual void Fire() override;
+	virtual void Aim() override;
+	virtual void StopAiming() override;
+	virtual void Reload() override;
+	virtual void EquipWeapon(AWeapon* Weapon) override;
+	virtual void SpawnDefaultWeapon() override;
+	virtual bool CanArm() override;
+	virtual bool CanDisarm() override;
+	virtual void FinishReloading_Implementation() override;
+	virtual void FinishEquipping_Implementation() override;
+	void Sprint();
+	void StopSprint();
+	bool CanFire() const;
+	bool CanReload() const;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (AllowPrivateAccess = "true"))
 	ECharacterState CharacterState = ECharacterState::ECS_EquippedGun;
@@ -118,24 +102,6 @@ private:
 	
 	UPROPERTY(VisibleAnywhere, Category = Hair)
 	UGroomComponent* Eyebrows;
-	
-	UPROPERTY(VisibleInstanceOnly)
-	AItem* OverlappingItem;
-
-	UPROPERTY(VisibleAnywhere, Category = Weapon)
-	AWeapon* EquippedWeapon;
-	
-	UPROPERTY(EditDefaultsOnly, Category = Montages)
-	UAnimMontage* EquipMontage;
-	
-	UPROPERTY(EditDefaultsOnly, Category = Montages)
-	UAnimMontage* FireMontage;
-
-	UPROPERTY(EditDefaultsOnly, Category = Montages)
-    UAnimMontage* ReloadMontage;
-
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<class AWeapon> WeaponClass;
 
     UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UAmmoWidget> AmmoWidgetClass;
@@ -151,7 +117,6 @@ private:
     UHealthBarWidget* HealthWidget;
 
 public:
-	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
 	FORCEINLINE ECharacterState GetCharacterState() const { return CharacterState; }
 	FORCEINLINE EActionState GetActionState() const { return ActionState; }
 	FORCEINLINE void SetActionState(EActionState NewState){ ActionState = NewState; }
