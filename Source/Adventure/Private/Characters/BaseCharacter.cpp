@@ -57,12 +57,9 @@ void ABaseCharacter::PlayFireMontage(const FName& SectionName)
 }
 void ABaseCharacter::Fire()
 {
-    if(EquippedWeapon)
+    if(EquippedWeapon && EquippedWeapon->TryFire())
     {
-        if(EquippedWeapon->TryFire())
-        {
-            PlayFireMontage(FName("Fire"));
-        }
+        PlayFireMontage(FName("Fire"));
     } 
 }
 void ABaseCharacter::Aim()
@@ -85,7 +82,7 @@ void ABaseCharacter::SpawnDefaultWeapon()
     AWeapon* DefaultWeapon = World->SpawnActor<AWeapon>(WeaponClass);
     if(DefaultWeapon)
     {
-        DefaultWeapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
+        DefaultWeapon->Equip(GetMesh(), FName("PistolSocket"), this, this);
         EquippedWeapon = DefaultWeapon;
     }
 }
@@ -96,6 +93,14 @@ bool ABaseCharacter::CanArm()
 bool ABaseCharacter::CanDisarm()
 {
 	return false;
+}
+bool ABaseCharacter::CanReload() const
+{
+    return EquippedWeapon && EquippedWeapon->CanReload();
+}
+bool ABaseCharacter::CanFire() const
+{
+    return EquippedWeapon != nullptr;
 }
 void ABaseCharacter::EquipWeapon(AWeapon* Weapon)
 {

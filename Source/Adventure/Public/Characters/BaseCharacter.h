@@ -19,14 +19,16 @@ public:
 	
 protected:
 	virtual void BeginPlay() override;
-	virtual bool CanArm();
-	virtual bool CanDisarm();
 	virtual void Fire();
 	virtual void Aim();
 	virtual void StopAiming();
 	virtual void Reload();
 	virtual void EquipWeapon(AWeapon* Weapon);
 	virtual void PlayFireMontage(const FName& SectionName);
+	virtual bool CanArm();
+	virtual bool CanDisarm();
+	virtual bool CanReload() const;
+	virtual bool CanFire() const;
 	void PlayEquipMontage(const FName& SectionName);
 	void PlayReloadMontage(const FName& SectionName);
 	void SetMovementSpeed(float Speed);

@@ -148,13 +148,12 @@ bool AEcho::CanFire() const
 {
     return CharacterState == ECharacterState::ECS_EquippedGun &&
            ActionState == EActionState::EAS_Aiming &&
-           EquippedWeapon != nullptr;
+           Super::CanFire();
 }
 bool AEcho::CanReload() const
 {
     return CharacterState == ECharacterState::ECS_EquippedGun &&
-           EquippedWeapon &&
-           EquippedWeapon->CanReload();
+           Super::CanReload();
 }
 void AEcho::Reload()
 {
@@ -213,10 +212,4 @@ bool AEcho::CanArm()
 {
     return ActionState == EActionState::EAS_Unoccupied &&
         CharacterState == ECharacterState::ECS_Unequipped && EquippedWeapon;
-}
-void AEcho::SpawnDefaultWeapon()
-{
-    Super::SpawnDefaultWeapon();
-
-    CharacterState = ECharacterState::ECS_EquippedGun;
 }

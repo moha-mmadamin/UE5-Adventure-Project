@@ -81,18 +81,17 @@ private:
 	virtual void StopAiming() override;
 	virtual void Reload() override;
 	virtual void EquipWeapon(AWeapon* Weapon) override;
-	virtual void SpawnDefaultWeapon() override;
-	virtual bool CanArm() override;
-	virtual bool CanDisarm() override;
 	virtual void FinishReloading_Implementation() override;
 	virtual void FinishEquipping_Implementation() override;
+	virtual bool CanArm() override;
+	virtual bool CanDisarm() override;
+	virtual bool CanFire() const;
+	virtual bool CanReload() const override;
 	void Sprint();
 	void StopSprint();
-	bool CanFire() const;
-	bool CanReload() const;
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	ECharacterState CharacterState = ECharacterState::ECS_EquippedGun;
+	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	EActionState ActionState = EActionState::EAS_Unoccupied;

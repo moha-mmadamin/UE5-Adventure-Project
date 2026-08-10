@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
 #include "EnemyTypes.h"
+#include "CharacterTypes.h"
 #include "Perception/AIPerceptionTypes.h"
 #include "Components/StaticMeshComponent.h"
 #include "Enemy.generated.h"
@@ -65,8 +66,11 @@ private:
 	UPROPERTY(EditAnywhere)
 	double CombatRadius = 500.f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess="true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta=(AllowPrivateAccess="true"))
 	UStaticMeshComponent* HolsterMesh;
+
+	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta=(AllowPrivateAccess = "true"))
+	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
 
 	/*
 	Navigation
