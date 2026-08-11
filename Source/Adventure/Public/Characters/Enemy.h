@@ -35,6 +35,9 @@ protected:
 	UFUNCTION(BlueprintCallable, Category="AI")
 	void HandleSight(AActor* DetectedActor);
 
+	UFUNCTION(BlueprintCallable, Category="AI")
+	void HandleLostSight(AActor* DetectedActor);
+
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	void HandleHearing(const FVector& Location);
 
@@ -42,8 +45,18 @@ protected:
 	void HandleDamage(AActor* DamageCauser);
 
 private:
-	void UpdateEnemyState();
+	void Die();
+	void StartAttack();
+	void StopAttack();
+	void Attack();
+	void StartSearching();
+	void FinishSearching();
 	void CheckPatrolTarget();
+	void UpdateCombat();
+	void InvestigateLastKnownLocation();
+	void SetEnemyState(EEnemyState NewState);
+	void OnStateChanged(EEnemyState PreviousState, EEnemyState NewState);
+	bool CanAttackTarget();
 
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
@@ -65,6 +78,12 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	double CombatRadius = 500.f;
+
+	UPROPERTY(EditAnywhere, Category="Combat")
+	float AttackRange = 1000.f;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float StopChaseRange = 1500.f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta=(AllowPrivateAccess="true"))
 	UStaticMeshComponent* HolsterMesh;
@@ -90,6 +109,9 @@ private:
 	double PatrolRadius = 200.f;
 
 	FTimerHandle PatrolTimer;
+	FTimerHandle SearchTimer;
+	FTimerHandle AttackTimer;
+
 	void PatrolTimerFinished();
 
 	UPROPERTY(EditAnywhere, Category = "AI Navigation")

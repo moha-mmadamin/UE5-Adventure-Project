@@ -7,6 +7,7 @@
 #include "Perception/AISense_Hearing.h"
 #include "Perception/AISense_Damage.h"
 #include "Items/Weapons/Weapon.h"
+#include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 AEnemy::AEnemy()
@@ -48,13 +49,25 @@ void AEnemy::BeginPlay()
     }
 
     EnemyController = Cast<AAIController>(GetController());
-    MoveToTarget(PatrolTarget);
+    if(PatrolTarget)
+    {
+        SetEnemyState(EEnemyState::EES_Patrol);
+        MoveToTarget(PatrolTarget);
+    }
 }
 void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
     
-    CheckPatrolTarget();
+    if(EnemyState == EEnemyState::EES_Patrol)
+    {
+        CheckPatrolTarget();
+    }
+    else if (EnemyState == EEnemyState::EES_Chasing ||
+             EnemyState == EEnemyState::EES_Combat)
+    {
+        UpdateCombat();
+    }
 }
 void AEnemy::MoveToTarget(AActor* Target)
 {
@@ -91,6 +104,9 @@ bool AEnemy::InTargetRange(AActor* Target, double Radius)
 }
 void AEnemy::CheckPatrolTarget()
 {
+    if(!PatrolTarget) return;
+    if (GetWorldTimerManager().IsTimerActive(PatrolTimer)) return;
+
     if(InTargetRange(PatrolTarget, PatrolRadius))
     {
         PatrolTarget = ChoosePatrolTarget();
@@ -98,28 +114,142 @@ void AEnemy::CheckPatrolTarget()
         GetWorldTimerManager().SetTimer(PatrolTimer, this, &AEnemy::PatrolTimerFinished, WaitTime);
     }
 }
-void AEnemy::UpdateEnemyState()
+void AEnemy::UpdateCombat()
 {
-    switch (EnemyDetectionType)
+    if(!CurrentTarget)
     {
-        case EEnemyDetectionType::EDT_Sight:
-            EnemyState = EEnemyState::EES_Chase;
-            GetCharacterMovement()->MaxWalkSpeed = ChaseSpeed;
-            break;
+        StopAttack();
+        return;
+    }
 
-        case EEnemyDetectionType::EDT_Hearing:
-            EnemyState = EEnemyState::EES_Chase;
-            GetCharacterMovement()->MaxWalkSpeed = ChaseSpeed;
-            break;
+    const float Distance = FVector::Dist(GetActorLocation(), CurrentTarget->GetActorLocation());
 
-        case EEnemyDetectionType::EDT_Damage:
-            EnemyState = EEnemyState::EES_Chase;
-            GetCharacterMovement()->MaxWalkSpeed = ChaseSpeed;
-            break;
+    // Target is too far
+    if(Distance > StopChaseRange)
+    {
+        StopAttack();
+
+        LastKnownLocation = CurrentTarget->GetActorLocation();
+        CurrentTarget = nullptr;
+
+        SetEnemyState(EEnemyState::EES_Searching);
+        SetMovementSpeed(PatrolSpeed);
+
+        if(EnemyController)
+        {
+            EnemyController->StopMovement();
+            EnemyController->ClearFocus(EAIFocusPriority::Gameplay);
+        }
+        StartSearching();
+        return;
+    }
+
+    // Target is outside attack range
+    if (Distance > AttackRange)
+    {
+        StopAttack();
+        SetEnemyState(EEnemyState::EES_Chasing);
+        //SetMovementSpeed(ChaseSpeed);
+        MoveToTarget(CurrentTarget);
+        return;
+    }
+    // Target is inside attack range
+    SetEnemyState(EEnemyState::EES_Combat);
+    if(EnemyController)
+    {
+        EnemyController->StopMovement();
+    }
+    if(CanAttackTarget())
+    {
+        StartAttack();
+    }
+    else
+    {
+        StopAttack();
+    }
+}
+void AEnemy::InvestigateLastKnownLocation()
+{
+    SetEnemyState(EEnemyState::EES_Investigating);
+
+    EnemyController->MoveToLocation(LastKnownLocation, 50.f);
+}
+void AEnemy::SetEnemyState(EEnemyState NewState)
+{
+    if(EnemyState == NewState) return;
+
+    const EEnemyState PreviousState = EnemyState;
+    EnemyState = NewState;
+
+    OnStateChanged(PreviousState, NewState);
+}
+void AEnemy::OnStateChanged(EEnemyState PreviousState, EEnemyState NewState)
+{
+    switch(NewState)
+    {
+        case EEnemyState::EES_Idle:
+        break;
+
+        case EEnemyState::EES_Patrol:
+        SetMovementSpeed(PatrolSpeed);
+        break;
+
+        case EEnemyState::EES_Chasing:
+        SetMovementSpeed(ChaseSpeed);
+        break;
+
+        case EEnemyState::EES_Combat:
+        break;
+
+        case EEnemyState::EES_Investigating:
+        break;
+
+        case EEnemyState::EES_Searching:
+        break;
+
+        case EEnemyState::EES_TakingCover:
+        break;
+
+        case EEnemyState::EES_Dead:
+        break;
 
         default:
-            break;
+        break;
     }
+}
+bool AEnemy::CanAttackTarget()
+{
+    if(!CurrentTarget) return false;
+
+    FVector Start = GetMesh()->GetSocketLocation(FName("head"));
+    FVector End = CurrentTarget->GetActorLocation();
+
+    FHitResult Hit;
+
+    FCollisionQueryParams Params;
+    Params.AddIgnoredActor(this);
+
+    bool bHit = GetWorld()->LineTraceSingleByChannel(
+        Hit,
+        Start,
+        End,
+        ECC_Visibility,
+        Params
+    );
+    DrawDebugLine(
+        GetWorld(),
+        Start,
+        End,
+        bHit && Hit.GetActor() == CurrentTarget
+            ? FColor::Green
+            : FColor::Red,
+        false,
+        0.1f,
+        0,
+        2.f
+    );
+
+    return bHit && Hit.GetActor() == CurrentTarget;
 }
 void AEnemy::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
@@ -127,7 +257,14 @@ void AEnemy::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 
     if(Stimulus.Type == UAISense::GetSenseID<UAISense_Sight>())
     {
-        HandleSight(Actor);
+        if(Stimulus.WasSuccessfullySensed())
+        {
+            HandleSight(Actor);
+        }
+        else
+        {
+            HandleLostSight(Actor);
+        }
     }
     else if(Stimulus.Type == UAISense::GetSenseID<UAISense_Hearing>())
     {
@@ -142,6 +279,70 @@ void AEnemy::PatrolTimerFinished()
 {
     MoveToTarget(PatrolTarget);
 }
+void AEnemy::Die()
+{
+    SetEnemyState(EEnemyState::EES_Dead);
+    StopAttack();
+
+    if(EnemyController)
+    {
+        EnemyController->StopMovement();
+        EnemyController->ClearFocus(EAIFocusPriority::Gameplay);
+    }
+
+    GetCharacterMovement()->DisableMovement();
+    AIPerceptionComponent->Deactivate();
+
+    GetCapsuleComponent()->SetCollisionEnabled(
+        ECollisionEnabled::NoCollision
+    );
+}
+void AEnemy::StartAttack()
+{
+    if(GetWorldTimerManager().IsTimerActive(AttackTimer)) return;
+
+    CharacterState = ECharacterState::ECS_EquippedGun;
+    PlayEquipMontage(FName("Equip"));
+    Attack();
+
+    GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemy::Attack, 0.2f, true);
+}
+void AEnemy::Attack()
+{
+    if(!EquippedWeapon) return;
+
+    if(CanFire())
+    {
+        Fire();
+    }
+}
+void AEnemy::StopAttack()
+{
+    GetWorldTimerManager().ClearTimer(AttackTimer);
+    CharacterState = ECharacterState::ECS_Unequipped;
+    PlayEquipMontage(FName("Unequip"));
+}
+void AEnemy::StartSearching()
+{
+    SetEnemyState(EEnemyState::EES_Searching);
+    EnemyController->MoveToLocation(LastKnownLocation, 50.f);
+
+    GetWorldTimerManager().SetTimer(SearchTimer, this, &AEnemy::FinishSearching, 5.f, false);
+}
+void AEnemy::FinishSearching()
+{
+    if(CurrentTarget) return;
+
+    SetEnemyState(EEnemyState::EES_Patrol);
+    SetMovementSpeed(PatrolSpeed);
+
+    PatrolTarget = ChoosePatrolTarget();
+
+    if(PatrolTarget)
+    {
+        MoveToTarget(PatrolTarget);
+    }
+}
 void AEnemy::HandleSight(AActor* DetectedActor)
 {
     if(!DetectedActor) return;
@@ -149,20 +350,56 @@ void AEnemy::HandleSight(AActor* DetectedActor)
     EnemyDetectionType = EEnemyDetectionType::EDT_Sight;
     CurrentTarget = DetectedActor;
     LastKnownLocation = DetectedActor->GetActorLocation();
-    UpdateEnemyState();
+    SetEnemyState(EEnemyState::EES_Chasing);
+    GetWorldTimerManager().ClearTimer(PatrolTimer);
+    SetMovementSpeed(ChaseSpeed);
+    if(EnemyController)
+    {
+        EnemyController->SetFocus(CurrentTarget);
+    }
+    UpdateCombat();
     //UE_LOG(LogTemp, Warning, TEXT("Enemy detected %s by sight."), *DetectedActor->GetName());
+}
+void AEnemy::HandleLostSight(AActor* DetectedActor)
+{
+    if(DetectedActor != CurrentTarget) return;
+
+    LastKnownLocation = DetectedActor->GetActorLocation();
+    CurrentTarget = nullptr;
+    SetEnemyState(EEnemyState::EES_Searching);
+    SetMovementSpeed(PatrolSpeed);
+    StopAttack();
+    if(EnemyController)
+    {
+        EnemyController->ClearFocus(EAIFocusPriority::Gameplay);
+    }
+    StartSearching();
 }
 void AEnemy::HandleHearing(const FVector& Location)
 {
     EnemyDetectionType = EEnemyDetectionType::EDT_Hearing;
     LastKnownLocation = Location;
-    UpdateEnemyState();
+    SetEnemyState(EEnemyState::EES_Investigating);
+    SetMovementSpeed(PatrolSpeed);
+    if(EnemyController)
+    {
+        EnemyController->ClearFocus(EAIFocusPriority::Gameplay);
+        EnemyController->MoveToLocation(LastKnownLocation, 50.f);
+    }
 }
 void AEnemy::HandleDamage(AActor* DamageCauser)
 {
     if(!DamageCauser) return;
-
-    EnemyDetectionType = EEnemyDetectionType::EDT_Damage;
     CurrentTarget = DamageCauser;
-    UpdateEnemyState();
+    LastKnownLocation = DamageCauser->GetActorLocation();
+    EnemyDetectionType = EEnemyDetectionType::EDT_Damage;
+    SetEnemyState(EEnemyState::EES_Combat);
+    GetWorldTimerManager().ClearTimer(PatrolTimer);
+    SetMovementSpeed(ChaseSpeed);
+
+    if(EnemyController)
+    {
+        EnemyController->SetFocus(CurrentTarget);
+    }
+    UpdateCombat();
 }
