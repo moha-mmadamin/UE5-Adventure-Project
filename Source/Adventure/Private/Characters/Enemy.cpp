@@ -22,6 +22,15 @@ AEnemy::AEnemy()
     //HolsterMesh->SetupAttachment(GetMesh(), TEXT("HolsterSocket"));
     HolsterMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     HolsterMesh->SetGenerateOverlapEvents(false);
+
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Block);
+    GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility,ECR_Ignore);
+
+    GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
+    GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+    GetMesh()->SetGenerateOverlapEvents(false);
     
     AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComponent"));
 }
@@ -219,7 +228,8 @@ void AEnemy::OnStateChanged(EEnemyState PreviousState, EEnemyState NewState)
 }
 bool AEnemy::CanAttackTarget()
 {
-    if(!CurrentTarget) return false;
+    if (!CurrentTarget)
+        return false;
 
     FVector Start = GetMesh()->GetSocketLocation(FName("head"));
     FVector End = CurrentTarget->GetActorLocation();
@@ -236,17 +246,16 @@ bool AEnemy::CanAttackTarget()
         ECC_Visibility,
         Params
     );
+
     DrawDebugLine(
         GetWorld(),
         Start,
         End,
-        bHit && Hit.GetActor() == CurrentTarget
-            ? FColor::Green
-            : FColor::Red,
+        bHit ? FColor::Green : FColor::Red,
         false,
         0.1f,
         0,
-        2.f
+        3.f
     );
 
     return bHit && Hit.GetActor() == CurrentTarget;

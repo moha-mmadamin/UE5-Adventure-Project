@@ -9,6 +9,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GroomComponent.h"
 #include "Items/Weapons/Weapon.h"
+#include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 AEcho::AEcho()
@@ -29,6 +30,16 @@ AEcho::AEcho()
     Eyebrows = CreateDefaultSubobject<UGroomComponent>(TEXT("Eyebrows"));
     Eyebrows->SetupAttachment(GetMesh());
     Eyebrows->AttachmentName = FString("head");
+
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Block);
+    GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility,ECR_Ignore);
+    GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Camera,ECR_Ignore);
+
+    GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    GetMesh()->SetCollisionResponseToAllChannels(ECR_Ignore);
+    GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
+    GetMesh()->SetGenerateOverlapEvents(false);
 
     HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 };
