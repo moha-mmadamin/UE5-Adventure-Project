@@ -13,6 +13,6 @@ void UEchoAnimInstance::NativeUpdateAnimation(float DeltaTime)
 	Super::NativeUpdateAnimation(DeltaTime);
 	if (Echo)
 	{
-		CharacterState = Echo->GetCharacterState();
+		WeaponState = Echo->GetWeaponState();
 	}
 }

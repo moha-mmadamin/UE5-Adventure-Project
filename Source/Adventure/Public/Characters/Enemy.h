@@ -70,6 +70,12 @@ private:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	EEnemyDetectionType EnemyDetectionType = EEnemyDetectionType::EDT_None;
 
+	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	EWeaponState WeaponState = EWeaponState::EWS_Unarmed;
+
+	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	EActionState ActionState = EActionState::EAS_Unoccupied;
+
 	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	AActor* CurrentTarget = nullptr;
 
@@ -88,8 +94,7 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta=(AllowPrivateAccess="true"))
 	UStaticMeshComponent* HolsterMesh;
 
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta=(AllowPrivateAccess = "true"))
-	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
+
 
 	/*
 	Navigation

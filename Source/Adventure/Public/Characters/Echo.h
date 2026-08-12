@@ -91,7 +91,7 @@ private:
 	void StopSprint();
 
 	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	ECharacterState CharacterState = ECharacterState::ECS_Unequipped;
+	EWeaponState WeaponState = EWeaponState::EWS_Unarmed;
 
 	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	EActionState ActionState = EActionState::EAS_Unoccupied;
@@ -116,7 +116,7 @@ private:
     UHealthBarWidget* HealthWidget;
 
 public:
-	FORCEINLINE ECharacterState GetCharacterState() const { return CharacterState; }
+	FORCEINLINE EWeaponState GetWeaponState() const { return WeaponState; }
 	FORCEINLINE EActionState GetActionState() const { return ActionState; }
 	FORCEINLINE void SetActionState(EActionState NewState){ ActionState = NewState; }
 };

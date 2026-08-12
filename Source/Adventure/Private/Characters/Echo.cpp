@@ -108,13 +108,13 @@ void AEcho::EKeyPressed()
         if(CanDisarm())
         {
             PlayEquipMontage(FName("Unequip"));
-            CharacterState = ECharacterState::ECS_Unequipped;
+            WeaponState = EWeaponState::EWS_Unarmed;
             ActionState = EActionState::EAS_EquippingWeapon;
         }
         else if(CanArm())
         {
             PlayEquipMontage(FName("Equip"));
-            CharacterState = ECharacterState::ECS_EquippedGun;
+            WeaponState = EWeaponState::EWS_Equipped;
             ActionState = EActionState::EAS_EquippingWeapon;
         }
     }
@@ -130,7 +130,7 @@ void AEcho::Aim()
     Super::Aim();
 
     ActionState = EActionState::EAS_Aiming;
-    if(AmmoWidget && CharacterState != ECharacterState::ECS_Unequipped)
+    if(AmmoWidget && WeaponState != EWeaponState::EWS_Unarmed)
     {
         AmmoWidget->SetVisibility(ESlateVisibility::Visible);
     }
@@ -157,13 +157,13 @@ void AEcho::StopSprint()
 }
 bool AEcho::CanFire() const
 {
-    return CharacterState == ECharacterState::ECS_EquippedGun &&
+    return WeaponState == EWeaponState::EWS_Equipped &&
            ActionState == EActionState::EAS_Aiming &&
            Super::CanFire();
 }
 bool AEcho::CanReload() const
 {
-    return CharacterState == ECharacterState::ECS_EquippedGun &&
+    return WeaponState == EWeaponState::EWS_Equipped &&
            Super::CanReload();
 }
 void AEcho::Reload()
@@ -177,7 +177,7 @@ void AEcho::EquipWeapon(AWeapon* Weapon)
 {
     Super::EquipWeapon(Weapon);
 
-    CharacterState = ECharacterState::ECS_EquippedGun;
+    WeaponState = EWeaponState::EWS_Equipped;
 }
 void AEcho::Move(const FInputActionValue& Value)
 {
@@ -205,7 +205,7 @@ void AEcho::Jump()
 bool AEcho::CanDisarm()
 {
     return ActionState == EActionState::EAS_Unoccupied &&
-        CharacterState != ECharacterState::ECS_Unequipped;
+        WeaponState != EWeaponState::EWS_Unarmed;
 }
 void AEcho::FinishEquipping_Implementation()
 {
@@ -222,5 +222,5 @@ void AEcho::FinishReloading_Implementation()
 bool AEcho::CanArm()
 {
     return ActionState == EActionState::EAS_Unoccupied &&
-        CharacterState == ECharacterState::ECS_Unequipped && EquippedWeapon;
+        WeaponState == EWeaponState::EWS_Unarmed && EquippedWeapon;
 }

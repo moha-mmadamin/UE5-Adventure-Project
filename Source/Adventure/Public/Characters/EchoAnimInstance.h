@@ -19,5 +19,5 @@ public:
 	class AEcho* Echo;
 
 	UPROPERTY(BlueprintReadOnly, Category = Movement)
-	ECharacterState CharacterState;
+	EWeaponState WeaponState;
 };

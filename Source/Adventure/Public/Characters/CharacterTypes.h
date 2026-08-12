@@ -1,10 +1,10 @@
 #pragma once
 
 UENUM(BlueprintType)
-enum class ECharacterState : uint8
+enum class EWeaponState : uint8
 {
-	ECS_Unequipped UMETA(DisplayName = "Unequipped"),
-	ECS_EquippedGun UMETA(DisplayName = "Equipped Gun")
+	EWS_Unarmed UMETA(DisplayName = "Unarmed"),
+	EWS_Equipped UMETA(DisplayName = "Equipped")
 };
 
 UENUM(BlueprintType)

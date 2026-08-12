@@ -47,7 +47,7 @@ void AEnemy::BeginPlay()
         );
     }
 
-    GetCharacterMovement()->MaxWalkSpeed = PatrolSpeed;
+    SetMovementSpeed(PatrolSpeed);
 
     if(AIPerceptionComponent)
     {
@@ -142,7 +142,6 @@ void AEnemy::UpdateCombat()
         CurrentTarget = nullptr;
 
         SetEnemyState(EEnemyState::EES_Searching);
-        SetMovementSpeed(PatrolSpeed);
 
         if(EnemyController)
         {
@@ -158,7 +157,6 @@ void AEnemy::UpdateCombat()
     {
         StopAttack();
         SetEnemyState(EEnemyState::EES_Chasing);
-        //SetMovementSpeed(ChaseSpeed);
         MoveToTarget(CurrentTarget);
         return;
     }
@@ -196,34 +194,25 @@ void AEnemy::OnStateChanged(EEnemyState PreviousState, EEnemyState NewState)
 {
     switch(NewState)
     {
-        case EEnemyState::EES_Idle:
-        break;
-
-        case EEnemyState::EES_Patrol:
-        SetMovementSpeed(PatrolSpeed);
-        break;
-
-        case EEnemyState::EES_Chasing:
-        SetMovementSpeed(ChaseSpeed);
-        break;
-
-        case EEnemyState::EES_Combat:
-        break;
-
-        case EEnemyState::EES_Investigating:
-        break;
-
         case EEnemyState::EES_Searching:
-        break;
+        case EEnemyState::EES_Investigating:
+        case EEnemyState::EES_Combat:
+        case EEnemyState::EES_Patrol:
+            SetMovementSpeed(PatrolSpeed);
+            break;
 
         case EEnemyState::EES_TakingCover:
-        break;
+        case EEnemyState::EES_Chasing:
+            SetMovementSpeed(ChaseSpeed);
+            break;
 
+        case EEnemyState::EES_Idle:
         case EEnemyState::EES_Dead:
-        break;
+            SetMovementSpeed(0.f);
+            break;
 
         default:
-        break;
+            break;
     }
 }
 bool AEnemy::CanAttackTarget()
@@ -310,7 +299,8 @@ void AEnemy::StartAttack()
 {
     if(GetWorldTimerManager().IsTimerActive(AttackTimer)) return;
 
-    CharacterState = ECharacterState::ECS_EquippedGun;
+    WeaponState = EWeaponState::EWS_Equipped;
+    ActionState = EActionState::EAS_Aiming;
     PlayEquipMontage(FName("Equip"));
     Attack();
 
@@ -328,7 +318,8 @@ void AEnemy::Attack()
 void AEnemy::StopAttack()
 {
     GetWorldTimerManager().ClearTimer(AttackTimer);
-    CharacterState = ECharacterState::ECS_Unequipped;
+    WeaponState = EWeaponState::EWS_Unarmed;
+    ActionState = EActionState::EAS_Unoccupied;
     PlayEquipMontage(FName("Unequip"));
 }
 void AEnemy::StartSearching()
@@ -343,7 +334,6 @@ void AEnemy::FinishSearching()
     if(CurrentTarget) return;
 
     SetEnemyState(EEnemyState::EES_Patrol);
-    SetMovementSpeed(PatrolSpeed);
 
     PatrolTarget = ChoosePatrolTarget();
 
@@ -361,7 +351,6 @@ void AEnemy::HandleSight(AActor* DetectedActor)
     LastKnownLocation = DetectedActor->GetActorLocation();
     SetEnemyState(EEnemyState::EES_Chasing);
     GetWorldTimerManager().ClearTimer(PatrolTimer);
-    SetMovementSpeed(ChaseSpeed);
     if(EnemyController)
     {
         EnemyController->SetFocus(CurrentTarget);
@@ -376,7 +365,6 @@ void AEnemy::HandleLostSight(AActor* DetectedActor)
     LastKnownLocation = DetectedActor->GetActorLocation();
     CurrentTarget = nullptr;
     SetEnemyState(EEnemyState::EES_Searching);
-    SetMovementSpeed(PatrolSpeed);
     StopAttack();
     if(EnemyController)
     {
@@ -389,7 +377,6 @@ void AEnemy::HandleHearing(const FVector& Location)
     EnemyDetectionType = EEnemyDetectionType::EDT_Hearing;
     LastKnownLocation = Location;
     SetEnemyState(EEnemyState::EES_Investigating);
-    SetMovementSpeed(PatrolSpeed);
     if(EnemyController)
     {
         EnemyController->ClearFocus(EAIFocusPriority::Gameplay);
@@ -404,7 +391,6 @@ void AEnemy::HandleDamage(AActor* DamageCauser)
     EnemyDetectionType = EEnemyDetectionType::EDT_Damage;
     SetEnemyState(EEnemyState::EES_Combat);
     GetWorldTimerManager().ClearTimer(PatrolTimer);
-    SetMovementSpeed(ChaseSpeed);
 
     if(EnemyController)
     {
