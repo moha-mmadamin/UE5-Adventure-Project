@@ -45,6 +45,9 @@ protected:
 	void HandleDamage(AActor* DamageCauser);
 
 private:
+	virtual bool CanArm() override;
+	virtual bool CanDisarm() override;
+	virtual void FinishEquipping_Implementation() override;
 	void Die();
 	void StartAttack();
 	void StopAttack();

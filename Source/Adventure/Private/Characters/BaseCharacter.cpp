@@ -114,6 +114,7 @@ void ABaseCharacter::Arm()
     {
         EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocket"));
     }
+    UE_LOG(LogTemp, Warning, TEXT("Arm called"));
 }
 void ABaseCharacter::Disarm()
 {
@@ -121,6 +122,7 @@ void ABaseCharacter::Disarm()
     {
         EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("PistolSocket"));
     }
+    UE_LOG(LogTemp, Warning, TEXT("Disarm called"));
 }
 void ABaseCharacter::FinishEquipping_Implementation()
 {
