@@ -24,9 +24,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	void MoveToTarget(AActor* Target);
-	AActor* ChoosePatrolTarget();
-	bool InTargetRange(AActor* Target, double Radius);
+	void MoveToActor(AActor* Target);
+	AActor* SelectNextPatrolTarget();
+	bool IsTargetInRange(AActor* Target, double Radius);
 
 	/*
 	AI senses
@@ -48,18 +48,18 @@ private:
 	virtual bool CanArm() override;
 	virtual bool CanDisarm() override;
 	virtual void FinishEquipping_Implementation() override;
+	void OnPatrolWaitFinished();
 	void Die();
-	void StartAttack();
-	void StopAttack();
-	void Attack();
-	void StartSearching();
-	void FinishSearching();
-	void CheckPatrolTarget();
+	void StartCombatAction();
+	void StopCombatAction();
+	void TryFireWeapon();
+	void BeginSearch();
+	void OnSearchFinished();
+	void UpdatePatrol();
 	void UpdateCombat();
-	void InvestigateLastKnownLocation();
 	void SetEnemyState(EEnemyState NewState);
 	void OnStateChanged(EEnemyState PreviousState, EEnemyState NewState);
-	bool CanAttackTarget();
+	bool HasLineOfSightToTarget();
 
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
@@ -84,9 +84,6 @@ private:
 
 	UPROPERTY()
 	FVector LastKnownLocation = FVector::ZeroVector;
-
-	UPROPERTY(EditAnywhere)
-	double CombatRadius = 500.f;
 
 	UPROPERTY(EditAnywhere, Category="Combat")
 	float AttackRange = 1000.f;
@@ -119,8 +116,8 @@ private:
 	FTimerHandle PatrolTimer;
 	FTimerHandle SearchTimer;
 	FTimerHandle AttackTimer;
+	FTimerHandle AimTimer;
 
-	void PatrolTimerFinished();
 
 	UPROPERTY(EditAnywhere, Category = "AI Navigation")
 	float WaitMin = 5.f;
