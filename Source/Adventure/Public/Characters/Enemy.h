@@ -47,12 +47,17 @@ protected:
 private:
 	virtual bool CanArm() override;
 	virtual bool CanDisarm() override;
+	virtual bool CanReload() const override;
+	virtual void Reload() override;
 	virtual void FinishEquipping_Implementation() override;
+	virtual void FinishReloading_Implementation() override;
 	void OnPatrolWaitFinished();
+	void BeginFiring();
 	void Die();
 	void StartCombatAction();
 	void StopCombatAction();
 	void TryFireWeapon();
+	void TryReload();
 	void BeginSearch();
 	void OnSearchFinished();
 	void UpdatePatrol();
@@ -90,6 +95,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float StopChaseRange = 1500.f;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float AimDelay = 0.5f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta=(AllowPrivateAccess="true"))
 	UStaticMeshComponent* HolsterMesh;

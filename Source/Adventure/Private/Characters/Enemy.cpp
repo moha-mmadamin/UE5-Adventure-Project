@@ -271,6 +271,12 @@ void AEnemy::OnPatrolWaitFinished()
 {
     MoveToActor(PatrolTarget);
 }
+void AEnemy::BeginFiring()
+{
+    if(ActionState != EActionState::EAS_Aiming) return;
+
+    GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemy::TryFireWeapon, 0.2f, true);
+}
 bool AEnemy::CanArm()
 {
     return ActionState == EActionState::EAS_Unoccupied &&
@@ -280,6 +286,18 @@ bool AEnemy::CanDisarm()
 {
     return ActionState == EActionState::EAS_Unoccupied &&
         WeaponState != EWeaponState::EWS_Unarmed;
+}
+bool AEnemy::CanReload() const
+{
+    return WeaponState == EWeaponState::EWS_Equipped && 
+        Super::CanReload();
+}
+void AEnemy::Reload()
+{
+    if(!CanReload()) return;
+
+    ActionState = EActionState::EAS_Reloading;
+    Super::Reload();
 }
 void AEnemy::FinishEquipping_Implementation()
 {
@@ -296,6 +314,12 @@ void AEnemy::FinishEquipping_Implementation()
         ActionState = EActionState::EAS_Unoccupied;
     }
     
+}
+void AEnemy::FinishReloading_Implementation()
+{
+    Super::FinishReloading_Implementation();
+
+    ActionState = EActionState::EAS_Unoccupied;
 }
 void AEnemy::Die()
 {
@@ -317,8 +341,7 @@ void AEnemy::Die()
 }
 void AEnemy::StartCombatAction()
 {
-    if(GetWorldTimerManager().IsTimerActive(AttackTimer) ||
-       ActionState == EActionState::EAS_EquippingWeapon ||
+    if(ActionState == EActionState::EAS_EquippingWeapon ||
        ActionState == EActionState::EAS_Reloading) return;
 
     if(CanArm())
@@ -331,21 +354,39 @@ void AEnemy::StartCombatAction()
     if(WeaponState == EWeaponState::EWS_Equipped && ActionState == EActionState::EAS_Unoccupied)
     {
         ActionState = EActionState::EAS_Aiming;
-        GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemy::TryFireWeapon, 0.2f, true);
+        GetWorldTimerManager().SetTimer(AimTimer, this, &AEnemy::BeginFiring, AimDelay, false);
     }
 }
 void AEnemy::TryFireWeapon()
 {
     if(ActionState != EActionState::EAS_Aiming) return;
 
+    if(EquippedWeapon->GetCurrentAmmo() <= 0)
+    {
+        TryReload();
+        return;
+    }
+
     if(CanFire())
     {
         Fire();
     }
 }
+void AEnemy::TryReload()
+{
+    if(ActionState == EActionState::EAS_Reloading ||
+       ActionState == EActionState::EAS_EquippingWeapon) return;
+
+    if(CanReload())
+    {
+        GetWorldTimerManager().ClearTimer(AttackTimer);
+        Reload();
+    }
+}
 void AEnemy::StopCombatAction()
 {
     GetWorldTimerManager().ClearTimer(AttackTimer);
+    GetWorldTimerManager().ClearTimer(AimTimer);
 
     if(ActionState == EActionState::EAS_EquippingWeapon || ActionState == EActionState::EAS_Reloading) return;
 
@@ -365,8 +406,13 @@ void AEnemy::OnSearchFinished()
 {
     if(CurrentTarget) return;
 
-    SetEnemyState(EEnemyState::EES_Patrol);
+    if(CanDisarm())
+    {
+        PlayEquipMontage(FName("Unequip"));
+        ActionState = EActionState::EAS_EquippingWeapon;
+    }
 
+    SetEnemyState(EEnemyState::EES_Patrol);
     PatrolTarget = SelectNextPatrolTarget();
 
     if(PatrolTarget)
