@@ -7,7 +7,7 @@
 #include "InputActionValue.h"
 #include "UI/AmmoWidget.h"
 #include "UI/HealthBarWidget.h"
-#include "Components/HealthComponent.h"
+#include "Components/Health/HealthComponent.h"
 #include "Echo.generated.h"
 
 

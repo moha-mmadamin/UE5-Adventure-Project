@@ -12,8 +12,8 @@ class AEcho;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	FOnAmmoChanged,
-	int, CurrentAmmo,
-	int, MaxAmmo
+	int32, CurrentAmmo,
+	int32, ReserveAmmo
 );
 
 UCLASS()
@@ -37,24 +37,23 @@ protected:
 	virtual void BeginPlay() override;
 	FTimerHandle FireRateHandle;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, Category="Ammo")
 	int32 CurrentAmmo = 15;
 
-	UPROPERTY(VisibleAnywhere, Category="Ammo")
+	UPROPERTY(EditDefaultsOnly, Category="Ammo")
 	int32 MagazineCapacity = 15;
 
-	UPROPERTY(VisibleAnywhere, Category = "Ammo")
+	UPROPERTY(EditDefaultsOnly, Category = "Ammo")
 	int32 ReserveAmmo = 45;
 
 private:
-	void SpawnParticle();
+	void SpawnParticle() const;
 	void ConsumeAmmo();
-	void FireTrace();
+	void FireTrace(FHitResult& OutHit) const;
 	void ResetFire();
 	void StartFireCooldown();
 	bool bCanFire = true;
-	bool CanShoot() const;
-
+	FVector GetShotDirection(const FVector& TargetPoint) const;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Effects")
 	UNiagaraSystem* FireEffect;
@@ -64,8 +63,6 @@ private:
 
 public:
 	FORCEINLINE int GetCurrentAmmo() const { return CurrentAmmo; }
-	FORCEINLINE void SetCurrentAmmo(int NewCurrentAmmo) { CurrentAmmo = NewCurrentAmmo; }
 	FORCEINLINE int GetReserveAmmo() const { return ReserveAmmo; }
-	FORCEINLINE void SetReserveAmmo(int NewReserveAmmo) { ReserveAmmo = NewReserveAmmo; }
 	FORCEINLINE int GetMagazineCapacity() const { return MagazineCapacity; }
 };

@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/HealthComponent.h"
+#include "Components/Health/HealthComponent.h"
 #include "HealthBarWidget.generated.h"
 
 class UProgressBar;
