@@ -108,14 +108,12 @@ void AEcho::EKeyPressed()
         if(CanDisarm())
         {
             PlayEquipMontage(FName("Unequip"));
-            WeaponState = EWeaponState::EWS_Unarmed;
-            ActionState = EActionState::EAS_EquippingWeapon;
+            CombatState = ECombatState::ECS_UnequippingWeapon;
         }
         else if(CanArm())
         {
             PlayEquipMontage(FName("Equip"));
-            WeaponState = EWeaponState::EWS_Equipped;
-            ActionState = EActionState::EAS_EquippingWeapon;
+            CombatState = ECombatState::ECS_EquippingWeapon;
         }
     }
 }
@@ -129,7 +127,6 @@ void AEcho::Aim()
 {
     Super::Aim();
 
-    ActionState = EActionState::EAS_Aiming;
     if(AmmoWidget && WeaponState != EWeaponState::EWS_Unarmed)
     {
         AmmoWidget->SetVisibility(ESlateVisibility::Visible);
@@ -139,7 +136,6 @@ void AEcho::StopAiming()
 {
     Super::StopAiming();
 
-    ActionState = EActionState::EAS_Unoccupied;
     if(AmmoWidget)
     {
         AmmoWidget->SetVisibility(ESlateVisibility::Hidden);
@@ -147,7 +143,7 @@ void AEcho::StopAiming()
 }
 void AEcho::Sprint()
 {
-    if(ActionState == EActionState::EAS_Aiming) return;
+    if(CombatState == ECombatState::ECS_Aiming) return;
 
     SetMovementSpeed(900.f);
 }
@@ -157,9 +153,9 @@ void AEcho::StopSprint()
 }
 bool AEcho::CanFire() const
 {
-    return WeaponState == EWeaponState::EWS_Equipped &&
-           ActionState == EActionState::EAS_Aiming &&
-           Super::CanFire();
+    return Super::CanFire() &&
+        WeaponState == EWeaponState::EWS_Equipped &&
+        CombatState == ECombatState::ECS_Aiming;
 }
 bool AEcho::CanReload() const
 {
@@ -170,14 +166,8 @@ void AEcho::Reload()
 {
     if(!CanReload()) return;
  
-    ActionState = EActionState::EAS_Reloading;
+    CombatState = ECombatState::ECS_Reloading;
     Super::Reload();
-}
-void AEcho::EquipWeapon(AWeapon* Weapon)
-{
-    Super::EquipWeapon(Weapon);
-
-    WeaponState = EWeaponState::EWS_Equipped;
 }
 void AEcho::Move(const FInputActionValue& Value)
 {
@@ -204,23 +194,17 @@ void AEcho::Jump()
 }
 bool AEcho::CanDisarm()
 {
-    return ActionState == EActionState::EAS_Unoccupied &&
+    return CombatState == ECombatState::ECS_Idle &&
         WeaponState != EWeaponState::EWS_Unarmed;
-}
-void AEcho::FinishEquipping_Implementation()
-{
-    Super::FinishEquipping_Implementation();
-
-    ActionState = EActionState::EAS_Unoccupied;
 }
 void AEcho::FinishReloading_Implementation()
 {
     Super::FinishReloading_Implementation();
 
-    IsAiming ? ActionState = EActionState::EAS_Aiming : ActionState = EActionState::EAS_Unoccupied;
+    CombatState = ECombatState::ECS_Aiming;
 }
 bool AEcho::CanArm()
 {
-    return ActionState == EActionState::EAS_Unoccupied &&
+    return CombatState == ECombatState::ECS_Idle &&
         WeaponState == EWeaponState::EWS_Unarmed && EquippedWeapon;
 }

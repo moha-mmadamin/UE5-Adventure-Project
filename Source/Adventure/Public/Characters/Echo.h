@@ -80,21 +80,13 @@ private:
 	virtual void Aim() override;
 	virtual void StopAiming() override;
 	virtual void Reload() override;
-	virtual void EquipWeapon(AWeapon* Weapon) override;
 	virtual void FinishReloading_Implementation() override;
-	virtual void FinishEquipping_Implementation() override;
 	virtual bool CanArm() override;
 	virtual bool CanDisarm() override;
 	virtual bool CanFire() const;
 	virtual bool CanReload() const override;
 	void Sprint();
 	void StopSprint();
-
-	UPROPERTY(BlueprintReadOnly, EditAnywhere, meta = (AllowPrivateAccess = "true"))
-	EWeaponState WeaponState = EWeaponState::EWS_Unarmed;
-
-	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	EActionState ActionState = EActionState::EAS_Unoccupied;
 	
 	UPROPERTY(VisibleAnywhere, Category = Hair)
 	UGroomComponent* Hair;
@@ -114,9 +106,4 @@ private:
 	TSubclassOf<UHealthBarWidget> HealthWidgetClass;
 
     UHealthBarWidget* HealthWidget;
-
-public:
-	FORCEINLINE EWeaponState GetWeaponState() const { return WeaponState; }
-	FORCEINLINE EActionState GetActionState() const { return ActionState; }
-	FORCEINLINE void SetActionState(EActionState NewState){ ActionState = NewState; }
 };

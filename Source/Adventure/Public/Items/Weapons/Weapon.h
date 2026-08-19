@@ -28,6 +28,7 @@ public:
 	bool TryFire();
 	void ReloadAmmo();
 	bool CanReload() const;
+	bool CanFire() const;
 	
 	UPROPERTY(BlueprintAssignable)
 	FOnAmmoChanged OnAmmoChanged;
@@ -51,7 +52,7 @@ private:
 	void FireTrace();
 	void ResetFire();
 	void StartFireCooldown();
-	bool CanFire = true;
+	bool bCanFire = true;
 	bool CanShoot() const;
 
 

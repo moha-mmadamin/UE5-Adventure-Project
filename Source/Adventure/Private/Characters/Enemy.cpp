@@ -19,7 +19,6 @@ AEnemy::AEnemy()
 	bUseControllerRotationRoll = false;
     
     HolsterMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HolsterMesh"));
-    //HolsterMesh->SetupAttachment(GetMesh(), TEXT("HolsterSocket"));
     HolsterMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     HolsterMesh->SetGenerateOverlapEvents(false);
 
@@ -57,7 +56,14 @@ void AEnemy::BeginPlay()
         );
     }
 
-    EnemyController = Cast<AAIController>(GetController());
+    //EnemyController = Cast<AAIController>(GetController());
+    if(EnemyController)
+    {
+        EnemyController->GetPathFollowingComponent()->OnRequestFinished.AddUObject(
+            this,
+            &AEnemy::OnMoveCompleted
+        );
+    }
     if(PatrolTarget)
     {
         SetEnemyState(EEnemyState::EES_Patrol);
@@ -67,20 +73,23 @@ void AEnemy::BeginPlay()
 void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-    
-    if(EnemyState == EEnemyState::EES_Patrol)
+}
+void AEnemy::PossessedBy(AController* NewController)
+{
+    Super::PossessedBy(NewController);
+
+    EnemyController = Cast<AAIController>(NewController);
+    InitializeAI();
+
+    if(EnemyController)
     {
-        UpdatePatrol();
-    }
-    else if (EnemyState == EEnemyState::EES_Chasing ||
-             EnemyState == EEnemyState::EES_Combat)
-    {
-        UpdateCombat();
+        UE_LOG(LogTemp, Warning, TEXT("Enemy Controller Possessed"));
     }
 }
 void AEnemy::MoveToActor(AActor* Target)
 {
     if(EnemyController == nullptr || Target == nullptr) return;
+
     FAIMoveRequest MoveRequest;
     MoveRequest.SetGoalActor(Target);
     MoveRequest.SetAcceptanceRadius(15.f);
@@ -105,75 +114,11 @@ AActor* AEnemy::SelectNextPatrolTarget()
     }
     return nullptr;
 }
-bool AEnemy::IsTargetInRange(AActor* Target, double Radius)
+bool AEnemy::IsTargetInRange(AActor* Target, double Radius) const
 {
-    if (Target == nullptr) return false;
-    const double DistanceToTarget = (Target->GetActorLocation() - GetActorLocation()).Size();
-    return DistanceToTarget <= Radius;
-}
-void AEnemy::UpdatePatrol()
-{
-    if(!PatrolTarget) return;
-    if (GetWorldTimerManager().IsTimerActive(PatrolTimer)) return;
-
-    if(IsTargetInRange(PatrolTarget, PatrolRadius))
-    {
-        PatrolTarget = SelectNextPatrolTarget();
-        const float WaitTime = FMath::RandRange(WaitMin, WaitMax);
-        GetWorldTimerManager().SetTimer(PatrolTimer, this, &AEnemy::OnPatrolWaitFinished, WaitTime);
-    }
-}
-void AEnemy::UpdateCombat()
-{
-    if(!CurrentTarget)
-    {
-        StopCombatAction();
-        return;
-    }
-
-    const float Distance = FVector::Dist(GetActorLocation(), CurrentTarget->GetActorLocation());
-
-    // Target is too far
-    if(Distance > StopChaseRange)
-    {
-        StopCombatAction();
-
-        LastKnownLocation = CurrentTarget->GetActorLocation();
-        CurrentTarget = nullptr;
-
-        SetEnemyState(EEnemyState::EES_Searching);
-
-        if(EnemyController)
-        {
-            EnemyController->StopMovement();
-            EnemyController->ClearFocus(EAIFocusPriority::Gameplay);
-        }
-        BeginSearch();
-        return;
-    }
-
-    // Target is outside attack range
-    if (Distance > AttackRange)
-    {
-        StopCombatAction();
-        SetEnemyState(EEnemyState::EES_Chasing);
-        MoveToActor(CurrentTarget);
-        return;
-    }
-    // Target is inside attack range
-    SetEnemyState(EEnemyState::EES_Combat);
-    if(EnemyController)
-    {
-        EnemyController->StopMovement();
-    }
-    if(HasLineOfSightToTarget())
-    {
-        StartCombatAction();
-    }
-    else if(WeaponState == EWeaponState::EWS_Equipped)
-    {
-        StopCombatAction();
-    }
+    if (!Target) return false;
+    const double Distance = (Target->GetActorLocation() - GetActorLocation()).Size();
+    return Distance <= Radius;
 }
 void AEnemy::SetEnemyState(EEnemyState NewState)
 {
@@ -243,6 +188,83 @@ bool AEnemy::HasLineOfSightToTarget()
 
     return bHit && Hit.GetActor() == CurrentTarget;
 }
+bool AEnemy::IsTargetInAttackRange() const
+{
+    if(!CurrentTarget) return false;
+    return IsTargetInRange(CurrentTarget, AttackRange);
+}
+bool AEnemy::IsTargetTooFar() const
+{
+    if(!CurrentTarget) return true;
+    return !IsTargetInRange(CurrentTarget, StopChaseRange);
+}
+void AEnemy::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
+{
+    if(!Result.IsSuccess()) return;
+
+    if(EnemyState == EEnemyState::EES_Patrol)
+    {
+        PatrolTarget = SelectNextPatrolTarget();
+        if(!PatrolTarget) return;
+
+        const float WaitTime = FMath::RandRange(WaitMin, WaitMax);
+        GetWorldTimerManager().SetTimer(PatrolTimer, this, &AEnemy::OnPatrolWaitFinished, WaitTime);
+    }
+    else if(EnemyState == EEnemyState::EES_Chasing)
+    {
+        if(IsTargetInAttackRange())
+        {
+            EnterCombat();
+        }
+        else
+        {
+            StartChasing();
+        }
+    }
+
+}
+void AEnemy::CheckLineOfSight()
+{
+    if(!CurrentTarget)
+    {
+        GetWorldTimerManager().ClearTimer(LOSTimer);
+        return;
+    }
+    if(EnemyState != EEnemyState::EES_Combat) return;
+    if(HasLineOfSightToTarget())
+    {
+        StartCombatAction();
+    }
+    else
+    {
+        StopCombatAction();
+    }
+}
+void AEnemy::CheckChaseDistance()
+{
+    if(!CurrentTarget)
+    {
+        GetWorldTimerManager().ClearTimer(ChaseTimer);
+        return;
+    }
+
+    if(IsTargetTooFar())
+    {
+        LastKnownLocation = CurrentTarget->GetActorLocation();
+
+        CurrentTarget = nullptr;
+
+        GetWorldTimerManager().ClearTimer(ChaseTimer);
+
+        if(EnemyController)
+        {
+            EnemyController->StopMovement();
+            EnemyController->ClearFocus(EAIFocusPriority::Gameplay);
+        }
+
+        BeginSearch();
+    }
+}
 void AEnemy::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
     if(!Actor) return;
@@ -273,18 +295,18 @@ void AEnemy::OnPatrolWaitFinished()
 }
 void AEnemy::BeginFiring()
 {
-    if(ActionState != EActionState::EAS_Aiming) return;
+    if(CombatState != ECombatState::ECS_Aiming) return;
 
-    GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemy::TryFireWeapon, 0.2f, true);
+    GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemy::TryFireWeapon, 0.1f, true);
 }
 bool AEnemy::CanArm()
 {
-    return ActionState == EActionState::EAS_Unoccupied &&
+    return CombatState == ECombatState::ECS_Idle &&
         WeaponState == EWeaponState::EWS_Unarmed && EquippedWeapon;
 }
 bool AEnemy::CanDisarm()
 {
-    return ActionState == EActionState::EAS_Unoccupied &&
+    return CombatState == ECombatState::ECS_Idle &&
         WeaponState != EWeaponState::EWS_Unarmed;
 }
 bool AEnemy::CanReload() const
@@ -296,30 +318,24 @@ void AEnemy::Reload()
 {
     if(!CanReload()) return;
 
-    ActionState = EActionState::EAS_Reloading;
+    CombatState = ECombatState::ECS_Reloading;
     Super::Reload();
-}
-void AEnemy::FinishEquipping_Implementation()
-{
-    Super::FinishEquipping_Implementation();
-
-    if (WeaponState == EWeaponState::EWS_Unarmed)
-    {
-        WeaponState = EWeaponState::EWS_Equipped;
-        ActionState = EActionState::EAS_Unoccupied;
-    }
-    else
-    {
-        WeaponState = EWeaponState::EWS_Unarmed;
-        ActionState = EActionState::EAS_Unoccupied;
-    }
-    
 }
 void AEnemy::FinishReloading_Implementation()
 {
     Super::FinishReloading_Implementation();
 
-    ActionState = EActionState::EAS_Unoccupied;
+    CombatState = ECombatState::ECS_Idle;
+}
+void AEnemy::InitializeAI()
+{
+    if(!EnemyController) return;
+
+    if(PatrolTarget)
+    {
+        SetEnemyState(EEnemyState::EES_Patrol);
+        MoveToActor(PatrolTarget);
+    }
 }
 void AEnemy::Die()
 {
@@ -339,43 +355,56 @@ void AEnemy::Die()
         ECollisionEnabled::NoCollision
     );
 }
+void AEnemy::EnterCombat()
+{
+    if(!CurrentTarget) return;
+
+    GetWorldTimerManager().ClearTimer(ChaseTimer);
+    SetEnemyState(EEnemyState::EES_Combat);
+    if(EnemyController)
+    {
+        EnemyController->StopMovement();
+    }
+    CheckLineOfSight();
+    
+    if(!GetWorldTimerManager().IsTimerActive(LOSTimer))
+    {
+        GetWorldTimerManager().SetTimer(LOSTimer, this, &AEnemy::CheckLineOfSight, 0.1f, true);
+    }
+}
 void AEnemy::StartCombatAction()
 {
-    if(ActionState == EActionState::EAS_EquippingWeapon ||
-       ActionState == EActionState::EAS_Reloading) return;
+    if(CombatState != ECombatState::ECS_Idle) return;
 
     if(CanArm())
     {
         PlayEquipMontage(FName("Equip"));
-        ActionState = EActionState::EAS_EquippingWeapon;
+        CombatState = ECombatState::ECS_EquippingWeapon;
         return;
     }
 
-    if(WeaponState == EWeaponState::EWS_Equipped && ActionState == EActionState::EAS_Unoccupied)
+    if(WeaponState == EWeaponState::EWS_Equipped)
     {
-        ActionState = EActionState::EAS_Aiming;
-        GetWorldTimerManager().SetTimer(AimTimer, this, &AEnemy::BeginFiring, AimDelay, false);
+        StartAiming();
     }
 }
 void AEnemy::TryFireWeapon()
 {
-    if(ActionState != EActionState::EAS_Aiming) return;
+    if(CombatState != ECombatState::ECS_Aiming) return;
 
-    if(EquippedWeapon->GetCurrentAmmo() <= 0)
+    if(!EquippedWeapon) return;
+
+    if(!CanFire())
     {
         TryReload();
         return;
     }
-
-    if(CanFire())
-    {
-        Fire();
-    }
+    Fire();
 }
 void AEnemy::TryReload()
 {
-    if(ActionState == EActionState::EAS_Reloading ||
-       ActionState == EActionState::EAS_EquippingWeapon) return;
+    if(CombatState == ECombatState::ECS_Reloading ||
+       CombatState == ECombatState::ECS_EquippingWeapon) return;
 
     if(CanReload())
     {
@@ -387,12 +416,51 @@ void AEnemy::StopCombatAction()
 {
     GetWorldTimerManager().ClearTimer(AttackTimer);
     GetWorldTimerManager().ClearTimer(AimTimer);
+    GetWorldTimerManager().ClearTimer(LOSTimer);
 
-    if(ActionState == EActionState::EAS_EquippingWeapon || ActionState == EActionState::EAS_Reloading) return;
-
-    if(ActionState == EActionState::EAS_Aiming || ActionState == EActionState::EAS_Shooting)
+    switch (CombatState)
     {
-        ActionState = EActionState::EAS_Unoccupied;
+        case ECombatState::ECS_Aiming:
+        {
+            CombatState = ECombatState::ECS_Idle;
+            break;
+        }
+
+        case ECombatState::ECS_EquippingWeapon:
+        case ECombatState::ECS_Reloading:
+        case ECombatState::ECS_Idle:
+        default:
+        {
+            break;
+        }
+    }
+}
+void AEnemy::StartAiming()
+{
+    CombatState = ECombatState::ECS_Aiming;
+    GetWorldTimerManager().SetTimer(AimTimer, this, &AEnemy::BeginFiring, AimDelay, false);
+}
+void AEnemy::StopAiming()
+{
+}
+void AEnemy::StartChasing()
+{
+    if(!CurrentTarget) return;
+
+    GetWorldTimerManager().ClearTimer(PatrolTimer);
+    SetEnemyState(EEnemyState::EES_Chasing);
+    SetMovementSpeed(ChaseSpeed);
+    MoveToActor(CurrentTarget);
+
+    if(!GetWorldTimerManager().IsTimerActive(ChaseTimer))
+    {
+        GetWorldTimerManager().SetTimer(
+            ChaseTimer,
+            this,
+            &AEnemy::CheckChaseDistance,
+            0.2f,
+            true
+        );
     }
 }
 void AEnemy::BeginSearch()
@@ -409,7 +477,7 @@ void AEnemy::OnSearchFinished()
     if(CanDisarm())
     {
         PlayEquipMontage(FName("Unequip"));
-        ActionState = EActionState::EAS_EquippingWeapon;
+        CombatState = ECombatState::ECS_EquippingWeapon;
     }
 
     SetEnemyState(EEnemyState::EES_Patrol);
@@ -427,14 +495,11 @@ void AEnemy::HandleSight(AActor* DetectedActor)
     EnemyDetectionType = EEnemyDetectionType::EDT_Sight;
     CurrentTarget = DetectedActor;
     LastKnownLocation = DetectedActor->GetActorLocation();
-    SetEnemyState(EEnemyState::EES_Chasing);
-    GetWorldTimerManager().ClearTimer(PatrolTimer);
     if(EnemyController)
     {
         EnemyController->SetFocus(CurrentTarget);
     }
-    UpdateCombat();
-    //UE_LOG(LogTemp, Warning, TEXT("Enemy detected %s by sight."), *DetectedActor->GetName());
+    StartChasing();
 }
 void AEnemy::HandleLostSight(AActor* DetectedActor)
 {
@@ -467,12 +532,19 @@ void AEnemy::HandleDamage(AActor* DamageCauser)
     CurrentTarget = DamageCauser;
     LastKnownLocation = DamageCauser->GetActorLocation();
     EnemyDetectionType = EEnemyDetectionType::EDT_Damage;
-    SetEnemyState(EEnemyState::EES_Combat);
     GetWorldTimerManager().ClearTimer(PatrolTimer);
 
     if(EnemyController)
     {
         EnemyController->SetFocus(CurrentTarget);
     }
-    UpdateCombat();
+
+    if(IsTargetInAttackRange())
+    {
+        EnterCombat();
+    }
+    else
+    {
+        StartChasing();
+    }
 }

@@ -6,6 +6,7 @@
 #include "CharacterTypes.h"
 #include "Perception/AIPerceptionTypes.h"
 #include "Components/StaticMeshComponent.h"
+#include "Navigation/PathFollowingComponent.h"
 #include "Enemy.generated.h"
 
 class UAIPerceptionComponent;
@@ -21,12 +22,13 @@ class ADVENTURE_API AEnemy : public ABaseCharacter
 public:
 	AEnemy();
 	virtual void Tick(float DeltaTime) override;
+	virtual void PossessedBy(AController* NewController) override;
 
 protected:
 	virtual void BeginPlay() override;
 	void MoveToActor(AActor* Target);
 	AActor* SelectNextPatrolTarget();
-	bool IsTargetInRange(AActor* Target, double Radius);
+	bool IsTargetInRange(AActor* Target, double Radius) const;
 
 	/*
 	AI senses
@@ -49,22 +51,30 @@ private:
 	virtual bool CanDisarm() override;
 	virtual bool CanReload() const override;
 	virtual void Reload() override;
-	virtual void FinishEquipping_Implementation() override;
 	virtual void FinishReloading_Implementation() override;
+	void InitializeAI();
 	void OnPatrolWaitFinished();
 	void BeginFiring();
 	void Die();
+	void EnterCombat();
 	void StartCombatAction();
 	void StopCombatAction();
+	void StartAiming();
+	void StopAiming();
+	void StartChasing();
 	void TryFireWeapon();
 	void TryReload();
 	void BeginSearch();
 	void OnSearchFinished();
-	void UpdatePatrol();
-	void UpdateCombat();
 	void SetEnemyState(EEnemyState NewState);
 	void OnStateChanged(EEnemyState PreviousState, EEnemyState NewState);
 	bool HasLineOfSightToTarget();
+	bool IsTargetInAttackRange() const;
+	bool IsTargetTooFar() const;
+	bool CanOverrideDetection(EEnemyDetectionType NewDetection) const;
+	void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result);
+	void CheckLineOfSight();
+	void CheckChaseDistance();
 
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
@@ -77,12 +87,6 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	EEnemyDetectionType EnemyDetectionType = EEnemyDetectionType::EDT_None;
-
-	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
-	EWeaponState WeaponState = EWeaponState::EWS_Unarmed;
-
-	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
-	EActionState ActionState = EActionState::EAS_Unoccupied;
 
 	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	AActor* CurrentTarget = nullptr;
@@ -123,8 +127,10 @@ private:
 
 	FTimerHandle PatrolTimer;
 	FTimerHandle SearchTimer;
-	FTimerHandle AttackTimer;
 	FTimerHandle AimTimer;
+	FTimerHandle AttackTimer;
+	FTimerHandle LOSTimer;
+	FTimerHandle ChaseTimer;
 
 
 	UPROPERTY(EditAnywhere, Category = "AI Navigation")

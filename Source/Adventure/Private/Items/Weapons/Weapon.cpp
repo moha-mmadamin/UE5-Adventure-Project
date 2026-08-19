@@ -89,11 +89,11 @@ void AWeapon::FireTrace()
 }
 void AWeapon::ResetFire()
 {
-	CanFire = true;
+	bCanFire = true;
 }
 void AWeapon::StartFireCooldown()
 {
-	CanFire = false;
+	bCanFire = false;
 
 	GetWorld()->GetTimerManager().SetTimer(
         FireRateHandle,
@@ -103,9 +103,13 @@ void AWeapon::StartFireCooldown()
         false
     );
 }
+bool AWeapon::CanFire() const
+{
+	return bCanFire && CurrentAmmo > 0;
+}
 bool AWeapon::CanShoot() const
 {
-	return CanFire && CurrentAmmo > 0;
+	return bCanFire && CurrentAmmo > 0;
 }
 void AWeapon::SpawnParticle()
 {

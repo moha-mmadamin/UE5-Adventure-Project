@@ -10,7 +10,11 @@ ABaseCharacter::ABaseCharacter()
 void ABaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	SpawnDefaultWeapon();
+	
+    if(bSpawnDefaultWeapon)
+    {
+        SpawnDefaultWeapon();
+    }
 }
 void ABaseCharacter::Tick(float DeltaTime)
 {
@@ -64,11 +68,13 @@ void ABaseCharacter::Fire()
 }
 void ABaseCharacter::Aim()
 {
-    IsAiming = true;
+    if(!CanAim()) return;
+
+    CombatState = ECombatState::ECS_Aiming;
 }
 void ABaseCharacter::StopAiming()
 {
-    IsAiming = false;
+    CombatState = ECombatState::ECS_Idle;
 }
 void ABaseCharacter::SetMovementSpeed(float Speed)
 {
@@ -82,8 +88,9 @@ void ABaseCharacter::SpawnDefaultWeapon()
     AWeapon* DefaultWeapon = World->SpawnActor<AWeapon>(WeaponClass);
     if(DefaultWeapon)
     {
-        DefaultWeapon->Equip(GetMesh(), FName("PistolSocket"), this, this);
+        DefaultWeapon->Equip(GetMesh(), WeaponHolsterSocket, this, this);
         EquippedWeapon = DefaultWeapon;
+        WeaponState = EWeaponState::EWS_Unarmed;
     }
 }
 bool ABaseCharacter::CanArm()
@@ -100,32 +107,53 @@ bool ABaseCharacter::CanReload() const
 }
 bool ABaseCharacter::CanFire() const
 {
-    return EquippedWeapon != nullptr;
+    return EquippedWeapon && 
+        EquippedWeapon->CanFire();
+}
+bool ABaseCharacter::CanAim() const
+{
+    return EquippedWeapon &&
+        CombatState == ECombatState::ECS_Idle;
 }
 void ABaseCharacter::EquipWeapon(AWeapon* Weapon)
 {
-    Weapon->Equip(GetMesh(), FName("RightHandSocket"), this, this);
+    if(!Weapon) return;
+    Weapon->Equip(GetMesh(), WeaponHandSocket, this, this);
     OverlappingItem = nullptr;
     EquippedWeapon = Weapon;
+    WeaponState = EWeaponState::EWS_Equipped;
 }
 void ABaseCharacter::Arm()
 {
     if(EquippedWeapon)
     {
-        EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("RightHandSocket"));
+        EquippedWeapon->AttachMeshToSocket(GetMesh(), WeaponHandSocket);
     }
-    UE_LOG(LogTemp, Warning, TEXT("Arm called"));
 }
 void ABaseCharacter::Disarm()
 {
 	if(EquippedWeapon)
     {
-        EquippedWeapon->AttachMeshToSocket(GetMesh(), FName("PistolSocket"));
+        EquippedWeapon->AttachMeshToSocket(GetMesh(), WeaponHolsterSocket);
     }
-    UE_LOG(LogTemp, Warning, TEXT("Disarm called"));
 }
-void ABaseCharacter::FinishEquipping_Implementation()
+void ABaseCharacter::FinishWeaponEquip_Implementation()
 {
+    if(EquippedWeapon)
+    {
+        EquippedWeapon->AttachMeshToSocket(GetMesh(), WeaponHandSocket);
+    }
+    WeaponState = EWeaponState::EWS_Equipped;
+    CombatState = ECombatState::ECS_Idle;
+}
+void ABaseCharacter::FinishWeaponUnequip_Implementation()
+{
+    if(EquippedWeapon)
+    {
+        EquippedWeapon->AttachMeshToSocket(GetMesh(), WeaponHolsterSocket);
+    }
+    WeaponState = EWeaponState::EWS_Unarmed;
+    CombatState = ECombatState::ECS_Idle;
 }
 void ABaseCharacter::FinishReloading_Implementation()
 {
