@@ -37,9 +37,11 @@ void ABaseCharacter::PlayReloadMontage(const FName& SectionName)
 }
 void ABaseCharacter::Reload()
 {
+    if(!CanReload()) return;
     if(!EquippedWeapon || !EquippedWeapon->CanReload()) return;
 
 	PlayReloadMontage(FName("Reload"));
+    CombatState = ECombatState::ECS_Reloading;
 }
 void ABaseCharacter::PlayEquipMontage(const FName& SectionName)
 {
@@ -61,12 +63,13 @@ void ABaseCharacter::PlayFireMontage(const FName& SectionName)
 }
 void ABaseCharacter::Fire()
 {
+    if(!CanFire()) return;
     if(EquippedWeapon && EquippedWeapon->TryFire())
     {
         PlayFireMontage(FName("Fire"));
     } 
 }
-void ABaseCharacter::Aim()
+void ABaseCharacter::StartAiming()
 {
     if(!CanAim()) return;
 
@@ -95,20 +98,27 @@ void ABaseCharacter::SpawnDefaultWeapon()
 }
 bool ABaseCharacter::CanArm()
 {
-	return false;
+    return CombatState == ECombatState::ECS_Idle &&
+        WeaponState == EWeaponState::EWS_Unarmed && 
+        EquippedWeapon;
 }
 bool ABaseCharacter::CanDisarm()
 {
-	return false;
+    return CombatState == ECombatState::ECS_Idle &&
+        WeaponState != EWeaponState::EWS_Unarmed;
 }
 bool ABaseCharacter::CanReload() const
 {
-    return EquippedWeapon && EquippedWeapon->CanReload();
+    return EquippedWeapon && 
+        EquippedWeapon->CanReload() &&
+        WeaponState == EWeaponState::EWS_Equipped;
 }
 bool ABaseCharacter::CanFire() const
 {
     return EquippedWeapon && 
-        EquippedWeapon->CanFire();
+        EquippedWeapon->CanFire() &&
+        WeaponState == EWeaponState::EWS_Equipped &&
+        CombatState == ECombatState::ECS_Aiming;
 }
 bool ABaseCharacter::CanAim() const
 {
@@ -161,4 +171,5 @@ void ABaseCharacter::FinishReloading_Implementation()
     {
         EquippedWeapon->ReloadAmmo();
     }
+    CombatState = ECombatState::ECS_Idle;
 }

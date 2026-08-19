@@ -233,11 +233,11 @@ void AEnemy::CheckLineOfSight()
     if(EnemyState != EEnemyState::EES_Combat) return;
     if(HasLineOfSightToTarget())
     {
-        StartCombatAction();
+        BeginCombat();
     }
     else
     {
-        StopCombatAction();
+        EndCombat();
     }
 }
 void AEnemy::CheckChaseDistance()
@@ -299,34 +299,6 @@ void AEnemy::BeginFiring()
 
     GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemy::TryFireWeapon, 0.1f, true);
 }
-bool AEnemy::CanArm()
-{
-    return CombatState == ECombatState::ECS_Idle &&
-        WeaponState == EWeaponState::EWS_Unarmed && EquippedWeapon;
-}
-bool AEnemy::CanDisarm()
-{
-    return CombatState == ECombatState::ECS_Idle &&
-        WeaponState != EWeaponState::EWS_Unarmed;
-}
-bool AEnemy::CanReload() const
-{
-    return WeaponState == EWeaponState::EWS_Equipped && 
-        Super::CanReload();
-}
-void AEnemy::Reload()
-{
-    if(!CanReload()) return;
-
-    CombatState = ECombatState::ECS_Reloading;
-    Super::Reload();
-}
-void AEnemy::FinishReloading_Implementation()
-{
-    Super::FinishReloading_Implementation();
-
-    CombatState = ECombatState::ECS_Idle;
-}
 void AEnemy::InitializeAI()
 {
     if(!EnemyController) return;
@@ -340,7 +312,7 @@ void AEnemy::InitializeAI()
 void AEnemy::Die()
 {
     SetEnemyState(EEnemyState::EES_Dead);
-    StopCombatAction();
+    EndCombat();
 
     if(EnemyController)
     {
@@ -372,7 +344,7 @@ void AEnemy::EnterCombat()
         GetWorldTimerManager().SetTimer(LOSTimer, this, &AEnemy::CheckLineOfSight, 0.1f, true);
     }
 }
-void AEnemy::StartCombatAction()
+void AEnemy::BeginCombat()
 {
     if(CombatState != ECombatState::ECS_Idle) return;
 
@@ -412,7 +384,7 @@ void AEnemy::TryReload()
         Reload();
     }
 }
-void AEnemy::StopCombatAction()
+void AEnemy::EndCombat()
 {
     GetWorldTimerManager().ClearTimer(AttackTimer);
     GetWorldTimerManager().ClearTimer(AimTimer);
@@ -437,11 +409,12 @@ void AEnemy::StopCombatAction()
 }
 void AEnemy::StartAiming()
 {
-    CombatState = ECombatState::ECS_Aiming;
+    Super::StartAiming();
     GetWorldTimerManager().SetTimer(AimTimer, this, &AEnemy::BeginFiring, AimDelay, false);
 }
 void AEnemy::StopAiming()
 {
+    Super::StopAiming();
 }
 void AEnemy::StartChasing()
 {
@@ -508,7 +481,7 @@ void AEnemy::HandleLostSight(AActor* DetectedActor)
     LastKnownLocation = DetectedActor->GetActorLocation();
     CurrentTarget = nullptr;
     SetEnemyState(EEnemyState::EES_Searching);
-    StopCombatAction();
+    EndCombat();
     if(EnemyController)
     {
         EnemyController->ClearFocus(EAIFocusPriority::Gameplay);

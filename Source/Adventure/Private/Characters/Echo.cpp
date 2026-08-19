@@ -89,7 +89,7 @@ void AEcho::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
         EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AEcho::Jump);
         EnhancedInputComponent->BindAction(EkeyAction, ETriggerEvent::Triggered, this, &AEcho::EKeyPressed);
         EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &AEcho::Fire);
-        EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &AEcho::Aim);
+        EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &AEcho::StartAiming);
         EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AEcho::StopAiming);
         EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Triggered, this, &AEcho::Sprint);
         EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AEcho::StopSprint);
@@ -117,15 +117,9 @@ void AEcho::EKeyPressed()
         }
     }
 }
-void AEcho::Fire()
+void AEcho::StartAiming()
 {
-    if(!CanFire()) return;
-
-    Super::Fire();
-}
-void AEcho::Aim()
-{
-    Super::Aim();
+    Super::StartAiming();
 
     if(AmmoWidget && WeaponState != EWeaponState::EWS_Unarmed)
     {
@@ -151,24 +145,6 @@ void AEcho::StopSprint()
 {
     SetMovementSpeed(150.f);
 }
-bool AEcho::CanFire() const
-{
-    return Super::CanFire() &&
-        WeaponState == EWeaponState::EWS_Equipped &&
-        CombatState == ECombatState::ECS_Aiming;
-}
-bool AEcho::CanReload() const
-{
-    return WeaponState == EWeaponState::EWS_Equipped &&
-           Super::CanReload();
-}
-void AEcho::Reload()
-{
-    if(!CanReload()) return;
- 
-    CombatState = ECombatState::ECS_Reloading;
-    Super::Reload();
-}
 void AEcho::Move(const FInputActionValue& Value)
 {
     const FVector2D MovementVector = Value.Get<FVector2D>();
@@ -191,20 +167,4 @@ void AEcho::Look(const FInputActionValue& Value)
 void AEcho::Jump()
 {
     Super::Jump();
-}
-bool AEcho::CanDisarm()
-{
-    return CombatState == ECombatState::ECS_Idle &&
-        WeaponState != EWeaponState::EWS_Unarmed;
-}
-void AEcho::FinishReloading_Implementation()
-{
-    Super::FinishReloading_Implementation();
-
-    CombatState = ECombatState::ECS_Aiming;
-}
-bool AEcho::CanArm()
-{
-    return CombatState == ECombatState::ECS_Idle &&
-        WeaponState == EWeaponState::EWS_Unarmed && EquippedWeapon;
 }

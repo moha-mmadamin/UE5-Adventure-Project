@@ -76,15 +76,8 @@ public:
 	UInputAction* ReloadAction;
 
 private:
-	virtual void Fire() override;
-	virtual void Aim() override;
+	virtual void StartAiming() override;
 	virtual void StopAiming() override;
-	virtual void Reload() override;
-	virtual void FinishReloading_Implementation() override;
-	virtual bool CanArm() override;
-	virtual bool CanDisarm() override;
-	virtual bool CanFire() const;
-	virtual bool CanReload() const override;
 	void Sprint();
 	void StopSprint();
 	

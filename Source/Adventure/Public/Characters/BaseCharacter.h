@@ -21,7 +21,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void Fire();
-	virtual void Aim();
+	virtual void StartAiming();
 	virtual void StopAiming();
 	virtual void Reload();
 	virtual void EquipWeapon(AWeapon* Weapon);

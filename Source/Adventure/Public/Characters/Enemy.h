@@ -47,20 +47,15 @@ protected:
 	void HandleDamage(AActor* DamageCauser);
 
 private:
-	virtual bool CanArm() override;
-	virtual bool CanDisarm() override;
-	virtual bool CanReload() const override;
-	virtual void Reload() override;
-	virtual void FinishReloading_Implementation() override;
+	virtual void StartAiming() override;
+	virtual void StopAiming() override;
 	void InitializeAI();
 	void OnPatrolWaitFinished();
 	void BeginFiring();
 	void Die();
 	void EnterCombat();
-	void StartCombatAction();
-	void StopCombatAction();
-	void StartAiming();
-	void StopAiming();
+	void BeginCombat();
+	void EndCombat();
 	void StartChasing();
 	void TryFireWeapon();
 	void TryReload();
