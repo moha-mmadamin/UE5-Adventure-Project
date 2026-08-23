@@ -4,6 +4,7 @@
 
 void UAmmoWidget::BindWeapon(AWeapon* Weapon)
 {
+    if(!Weapon) return;
     CurrentWeapon = Weapon;
     Weapon->OnAmmoChanged.AddDynamic(
 		this,

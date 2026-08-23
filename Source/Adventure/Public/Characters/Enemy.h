@@ -47,8 +47,8 @@ protected:
 	void HandleDamage(AActor* DamageCauser);
 
 private:
-	virtual void StartAiming() override;
-	virtual void StopAiming() override;
+	void StartAiming();
+	void StopAiming();
 	void InitializeAI();
 	void OnPatrolWaitFinished();
 	void BeginFiring();
@@ -57,7 +57,7 @@ private:
 	void BeginCombat();
 	void EndCombat();
 	void StartChasing();
-	void TryFireWeapon();
+	void TryFire();
 	void TryReload();
 	void BeginSearch();
 	void OnSearchFinished();

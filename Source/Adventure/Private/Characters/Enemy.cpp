@@ -8,6 +8,7 @@
 #include "Perception/AISense_Damage.h"
 #include "Items/Weapons/Weapon.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/Combat/CombatComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 AEnemy::AEnemy()
@@ -295,9 +296,9 @@ void AEnemy::OnPatrolWaitFinished()
 }
 void AEnemy::BeginFiring()
 {
-    if(CombatState != ECombatState::ECS_Aiming) return;
+    if(CombatComponent->GetCombatState() != ECombatState::ECS_Aiming) return;
 
-    GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemy::TryFireWeapon, 0.1f, true);
+    GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemy::TryFire, 0.1f, true);
 }
 void AEnemy::InitializeAI()
 {
@@ -346,43 +347,36 @@ void AEnemy::EnterCombat()
 }
 void AEnemy::BeginCombat()
 {
-    if(CombatState != ECombatState::ECS_Idle) return;
-
-    if(CanArm())
-    {
-        PlayEquipMontage(FName("Equip"));
-        CombatState = ECombatState::ECS_EquippingWeapon;
-        return;
-    }
-
-    if(WeaponState == EWeaponState::EWS_Equipped)
-    {
-        StartAiming();
-    }
+    if(!CombatComponent) return;
+    CombatComponent->Arm();
+    //if(CombatComponent->CanArm())
+    //{
+    //    CombatComponent->Arm();
+    //    return;
+    //}
+    StartAiming();
 }
-void AEnemy::TryFireWeapon()
+void AEnemy::TryFire()
 {
-    if(CombatState != ECombatState::ECS_Aiming) return;
+    if(!CombatComponent) return;
 
-    if(!EquippedWeapon) return;
-
-    if(!CanFire())
+    if(CombatComponent->CanFire())
+    {
+        CombatComponent->Fire();
+    }
+    else
     {
         TryReload();
-        return;
     }
-    Fire();
 }
 void AEnemy::TryReload()
 {
-    if(CombatState == ECombatState::ECS_Reloading ||
-       CombatState == ECombatState::ECS_EquippingWeapon) return;
+    if(!CombatComponent) return;
 
-    if(CanReload())
-    {
-        GetWorldTimerManager().ClearTimer(AttackTimer);
-        Reload();
-    }
+    //if(!CombatComponent->CanReload()) return;
+    GetWorldTimerManager().ClearTimer(AttackTimer);
+
+    CombatComponent->Reload();
 }
 void AEnemy::EndCombat()
 {
@@ -390,31 +384,21 @@ void AEnemy::EndCombat()
     GetWorldTimerManager().ClearTimer(AimTimer);
     GetWorldTimerManager().ClearTimer(LOSTimer);
 
-    switch (CombatState)
-    {
-        case ECombatState::ECS_Aiming:
-        {
-            CombatState = ECombatState::ECS_Idle;
-            break;
-        }
-
-        case ECombatState::ECS_EquippingWeapon:
-        case ECombatState::ECS_Reloading:
-        case ECombatState::ECS_Idle:
-        default:
-        {
-            break;
-        }
-    }
+    if(!CombatComponent) return;
+    
+    CombatComponent->StopAiming();
 }
 void AEnemy::StartAiming()
 {
-    Super::StartAiming();
+    if(!CombatComponent) return;
+    CombatComponent->StartAiming();
+
     GetWorldTimerManager().SetTimer(AimTimer, this, &AEnemy::BeginFiring, AimDelay, false);
 }
 void AEnemy::StopAiming()
 {
-    Super::StopAiming();
+    if(!CombatComponent) return;
+    CombatComponent->StopAiming();
 }
 void AEnemy::StartChasing()
 {
@@ -447,11 +431,7 @@ void AEnemy::OnSearchFinished()
 {
     if(CurrentTarget) return;
 
-    if(CanDisarm())
-    {
-        PlayEquipMontage(FName("Unequip"));
-        CombatState = ECombatState::ECS_EquippingWeapon;
-    }
+    CombatComponent->Disarm();
 
     SetEnemyState(EEnemyState::EES_Patrol);
     PatrolTarget = SelectNextPatrolTarget();

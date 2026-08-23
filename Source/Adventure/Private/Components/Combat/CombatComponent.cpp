@@ -45,6 +45,8 @@ void UCombatComponent::StartAiming()
 }
 void UCombatComponent::StopAiming()
 {
+    if(CombatState != ECombatState::ECS_Aiming) return;
+
     CombatState = ECombatState::ECS_Idle;
 }
 void UCombatComponent::EquipWeapon(AWeapon* Weapon)
@@ -59,7 +61,8 @@ bool UCombatComponent::CanReload() const
 {
     return EquippedWeapon && 
         EquippedWeapon->CanReload() &&
-        WeaponState == EWeaponState::EWS_Equipped;
+        WeaponState == EWeaponState::EWS_Equipped &&
+        CombatState == ECombatState::ECS_Idle;
 }
 bool UCombatComponent::CanFire() const
 {
@@ -71,6 +74,7 @@ bool UCombatComponent::CanFire() const
 bool UCombatComponent::CanAim() const
 {
     return EquippedWeapon &&
+        WeaponState == EWeaponState::EWS_Equipped &&
         CombatState == ECombatState::ECS_Idle;
 }
 bool UCombatComponent::CanArm() const
@@ -97,19 +101,32 @@ void UCombatComponent::SpawnDefaultWeapon()
         WeaponState = EWeaponState::EWS_Unarmed;
     }
 }
+void UCombatComponent::ToggleWeapon()
+{
+    if(CanDisarm())
+    {
+        Character->PlayEquipMontage(FName("Unequip"));
+        SetCombatState(ECombatState::ECS_UnequippingWeapon);
+    }
+    else if(CanArm())
+    {
+        Character->PlayEquipMontage(FName("Equip"));
+        SetCombatState(ECombatState::ECS_EquippingWeapon);
+    }
+}
 void UCombatComponent::Arm()
 {
-    if(EquippedWeapon)
-    {
-        EquippedWeapon->AttachMeshToSocket(Character->GetMesh(), WeaponHandSocket);
-    }
+    if(!CanArm()) return;
+
+    Character->PlayEquipMontage(FName("Equip"));
+    CombatState = ECombatState::ECS_EquippingWeapon;
 }
 void UCombatComponent::Disarm()
 {
-	if(EquippedWeapon)
-    {
-        EquippedWeapon->AttachMeshToSocket(Character->GetMesh(), WeaponHolsterSocket);
-    }
+	if(!CanDisarm()) return;
+
+    Character->PlayEquipMontage(FName("Unequip"));
+    CombatState = ECombatState::ECS_UnequippingWeapon;
 }
 void UCombatComponent::FinishWeaponEquip_Implementation()
 {

@@ -1,5 +1,5 @@
 #include "Characters/BaseCharacter.h"
-//#include "Components/Combat/CombatComponent.h"
+#include "Components/Combat/CombatComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 ABaseCharacter::ABaseCharacter()

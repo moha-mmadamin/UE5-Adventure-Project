@@ -17,24 +17,25 @@ public:
 	UCombatComponent();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	virtual void Fire();
-	virtual void Reload();
-	virtual void StartAiming();
-	virtual void StopAiming();
-	virtual void EquipWeapon(AWeapon* Weapon);
-	virtual void SpawnDefaultWeapon();
+	void Fire();
+	void Reload();
+	void StartAiming();
+	void StopAiming();
+	void EquipWeapon(AWeapon* Weapon);
+	void SpawnDefaultWeapon();
+	void ToggleWeapon();
 
-	virtual bool CanReload() const;
-	virtual bool CanFire() const;
-	virtual bool CanAim() const;
-	virtual bool CanArm() const;
-	virtual bool CanDisarm() const;
+	bool CanReload() const;
+	bool CanFire() const;
+	bool CanAim() const;
+	bool CanArm() const;
+	bool CanDisarm() const;
 
 	UFUNCTION(BlueprintCallable)
-	virtual void Arm();
+	void Arm();
 	
 	UFUNCTION(BlueprintCallable)
-	virtual void Disarm();
+	void Disarm();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void FinishWeaponEquip();
@@ -80,5 +81,6 @@ private:
 public:
 	FORCEINLINE EWeaponState GetWeaponState() const { return WeaponState; }
 	FORCEINLINE ECombatState GetCombatState() const { return CombatState; }
-	FORCEINLINE void SetCombatState(ECombatState NewState){ CombatState = NewState;}
+	FORCEINLINE AWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
+	FORCEINLINE void SetCombatState(ECombatState NewState){ CombatState = NewState; }
 };

@@ -10,6 +10,7 @@
 #include "GroomComponent.h"
 #include "Items/Weapons/Weapon.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/Combat/CombatComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 AEcho::AEcho()
@@ -60,7 +61,7 @@ void AEcho::BeginPlay()
         if(AmmoWidget)
         {
             AmmoWidget->AddToViewport();
-            AmmoWidget->BindWeapon(EquippedWeapon);
+            AmmoWidget->BindWeapon(CombatComponent->GetEquippedWeapon());
             AmmoWidget->SetVisibility(ESlateVisibility::Hidden);
         }
     }
@@ -98,38 +99,25 @@ void AEcho::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 }
 void AEcho::EKeyPressed()
 {
-    AWeapon* OverlappingWeapon = Cast<AWeapon>(OverlappingItem);
-    if(OverlappingWeapon)
-    {
-        EquipWeapon(OverlappingWeapon);
-    }
-    else
-    {
-        if(CanDisarm())
-        {
-            PlayEquipMontage(FName("Unequip"));
-            CombatState = ECombatState::ECS_UnequippingWeapon;
-        }
-        else if(CanArm())
-        {
-            PlayEquipMontage(FName("Equip"));
-            CombatState = ECombatState::ECS_EquippingWeapon;
-        }
-    }
+    CombatComponent->ToggleWeapon();
 }
 void AEcho::StartAiming()
 {
-    Super::StartAiming();
+    if(!CombatComponent) return;
 
-    if(AmmoWidget && WeaponState != EWeaponState::EWS_Unarmed)
+    CombatComponent->StartAiming();
+    
+    if(AmmoWidget && CombatComponent->GetCombatState() == ECombatState::ECS_Aiming)
     {
         AmmoWidget->SetVisibility(ESlateVisibility::Visible);
     }
 }
 void AEcho::StopAiming()
 {
-    Super::StopAiming();
-
+    if(!CombatComponent) return;
+    
+    CombatComponent->StopAiming();
+    
     if(AmmoWidget)
     {
         AmmoWidget->SetVisibility(ESlateVisibility::Hidden);
@@ -137,13 +125,27 @@ void AEcho::StopAiming()
 }
 void AEcho::Sprint()
 {
-    if(CombatState == ECombatState::ECS_Aiming) return;
+    if(CombatComponent && CombatComponent->GetCombatState() == ECombatState::ECS_Aiming) return;
 
     SetMovementSpeed(900.f);
 }
 void AEcho::StopSprint()
 {
     SetMovementSpeed(150.f);
+}
+void AEcho::Fire()
+{
+    if(CombatComponent)
+    {
+        CombatComponent->Fire();
+    }
+}
+void AEcho::Reload()
+{
+    if(CombatComponent)
+    {
+        CombatComponent->Reload();
+    }
 }
 void AEcho::Move(const FInputActionValue& Value)
 {

@@ -26,7 +26,7 @@ protected:
 	virtual void BeginPlay() override;
 	void SetMovementSpeed(float Speed);
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Combat", meta=(AllowPrivateAccess="true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category= "Combat", meta=(AllowPrivateAccess="true"))
 	UCombatComponent* CombatComponent;
 
 	/*
@@ -42,11 +42,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Montages)
 	UAnimMontage* FireMontage;
 
-private:
 	UPROPERTY(VisibleInstanceOnly)
 	AItem* OverlappingItem;
 
 public:	
-	FORCEINLINE void SetOverlappingItem(AItem* Item) {OverlappingItem = Item;}
+	FORCEINLINE void SetOverlappingItem(AItem* Item) { OverlappingItem = Item; }
+	FORCEINLINE UCombatComponent* GetCombatComponent() const { return CombatComponent; }
 	
 };

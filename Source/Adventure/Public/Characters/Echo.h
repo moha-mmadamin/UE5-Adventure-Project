@@ -3,13 +3,11 @@
 #include "CharacterTypes.h"
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
-#include "EchoAnimInstance.h"
 #include "InputActionValue.h"
 #include "UI/AmmoWidget.h"
 #include "UI/HealthBarWidget.h"
 #include "Components/Health/HealthComponent.h"
 #include "Echo.generated.h"
-
 
 class USpringArmComponent;
 class UCameraComponent;
@@ -76,10 +74,12 @@ public:
 	UInputAction* ReloadAction;
 
 private:
-	virtual void StartAiming() override;
-	virtual void StopAiming() override;
+	void StartAiming();
+	void StopAiming();
 	void Sprint();
 	void StopSprint();
+	void Fire();
+	void Reload();
 	
 	UPROPERTY(VisibleAnywhere, Category = Hair)
 	UGroomComponent* Hair;
