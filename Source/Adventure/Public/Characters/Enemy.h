@@ -4,15 +4,16 @@
 #include "BaseCharacter.h"
 #include "EnemyTypes.h"
 #include "CharacterTypes.h"
-#include "Perception/AIPerceptionTypes.h"
 #include "Components/StaticMeshComponent.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "Enemy.generated.h"
 
-class UAIPerceptionComponent;
 class AAIController;
-class AWeapon;
-class UAnimMontage;
+class UStaticMeshComponent;
+class UPerceptionComponent;
+class UAIComponent;
+class UAIPerceptionComponent;
+class UAISenseConfig_Sight;
 
 UCLASS()
 class ADVENTURE_API AEnemy : public ABaseCharacter
@@ -26,117 +27,69 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	void MoveToActor(AActor* Target);
-	AActor* SelectNextPatrolTarget();
-	bool IsTargetInRange(AActor* Target, double Radius) const;
-
-	/*
-	AI senses
-	*/
-
-	UFUNCTION(BlueprintCallable, Category="AI")
-	void HandleSight(AActor* DetectedActor);
-
-	UFUNCTION(BlueprintCallable, Category="AI")
-	void HandleLostSight(AActor* DetectedActor);
-
-	UFUNCTION(BlueprintCallable, Category = "AI")
-	void HandleHearing(const FVector& Location);
-
-	UFUNCTION(BlueprintCallable, Category="AI")
-	void HandleDamage(AActor* DamageCauser);
 
 private:
-	void StartAiming();
-	void StopAiming();
-	void InitializeAI();
-	void OnPatrolWaitFinished();
-	void BeginFiring();
-	void Die();
-	void EnterCombat();
-	void BeginCombat();
-	void EndCombat();
-	void StartChasing();
-	void TryFire();
-	void TryReload();
-	void BeginSearch();
-	void OnSearchFinished();
-	void SetEnemyState(EEnemyState NewState);
-	void OnStateChanged(EEnemyState PreviousState, EEnemyState NewState);
-	bool HasLineOfSightToTarget();
-	bool IsTargetInAttackRange() const;
-	bool IsTargetTooFar() const;
-	bool CanOverrideDetection(EEnemyDetectionType NewDetection) const;
-	void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result);
-	void CheckLineOfSight();
-	void CheckChaseDistance();
 
-	UFUNCTION()
-	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+    /*
+    Combat
+    */
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
-	UAIPerceptionComponent* AIPerceptionComponent;
+    void StartAiming();
+    void StopAiming();
+    void BeginFiring();
+    void TryFire();
+    void TryReload();
 
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	EEnemyState EnemyState = EEnemyState::EES_Idle;
+    void Die();
 
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	EEnemyDetectionType EnemyDetectionType = EEnemyDetectionType::EDT_None;
+    void DeactivatePerception();
 
-	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
-	AActor* CurrentTarget = nullptr;
+    /*
+    Components
+    */
 
-	UPROPERTY()
-	FVector LastKnownLocation = FVector::ZeroVector;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+    UPerceptionComponent* PerceptionComponent;
 
-	UPROPERTY(EditAnywhere, Category="Combat")
-	float AttackRange = 1000.f;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+    UAIComponent* AIComponent;
 
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	float StopChaseRange = 1500.f;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+    UAIPerceptionComponent* AIPerceptionComponent;
 
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	float AimDelay = 0.5f;
+    /*
+    Controller
+    */
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta=(AllowPrivateAccess="true"))
-	UStaticMeshComponent* HolsterMesh;
+    UPROPERTY()
+    AAIController* EnemyController;
 
+    /*
+    Equipment
+    */
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
+    UStaticMeshComponent* HolsterMesh;
 
-	/*
-	Navigation
-	*/
+    /*
+    Combat Settings
+    */
 
-	UPROPERTY()
-	AAIController* EnemyController;
+    UPROPERTY(EditAnywhere, Category = "Combat")
+    float AttackRange = 1000.f;
 
-	//Current patrol target
-	UPROPERTY(EditInstanceOnly, Category = "AI Navigation")
-	AActor* PatrolTarget;
+    UPROPERTY(EditAnywhere, Category = "Combat")
+    float AimDelay = 0.5f;
 
-	UPROPERTY(EditInstanceOnly, Category = "AI Navigation")
-	TArray<AActor*> PatrolTargets;
+    /*
+    Combat Timers
+    */
 
-	UPROPERTY(EditAnywhere)
-	double PatrolRadius = 200.f;
+    FTimerHandle AimTimer;
+    FTimerHandle AttackTimer;
 
-	FTimerHandle PatrolTimer;
-	FTimerHandle SearchTimer;
-	FTimerHandle AimTimer;
-	FTimerHandle AttackTimer;
-	FTimerHandle LOSTimer;
-	FTimerHandle ChaseTimer;
-
-
-	UPROPERTY(EditAnywhere, Category = "AI Navigation")
-	float WaitMin = 5.f;
-
-	UPROPERTY(EditAnywhere, Category = "AI Navigation")
-	float WaitMax = 10.f;
-
-	UPROPERTY(EditAnywhere, Category = "Movement")
-	float PatrolSpeed = 100.f;
-
-	UPROPERTY(EditAnywhere, Category = "Movement")
-	float ChaseSpeed = 400.f;
+public:
+    FORCEINLINE UAIComponent* GetAIComponent() const { return AIComponent; }
+    FORCEINLINE UPerceptionComponent* GetPerceptionComponent() const { return PerceptionComponent; }
+    FORCEINLINE UAIPerceptionComponent* GetAIPerceptionComponent() const { return AIPerceptionComponent; }
 };

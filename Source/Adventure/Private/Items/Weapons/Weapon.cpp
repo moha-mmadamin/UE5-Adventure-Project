@@ -31,17 +31,35 @@ bool AWeapon::TryFire()
 {	
 	if(!CanFire()) return false;
 
-	FHitResult Hit;
-    FireTrace(Hit);
+	FHitResult CameraHit;
+    FireTrace(CameraHit);
 
-	const FVector TargetPoint = Hit.bBlockingHit ? Hit.ImpactPoint : Hit.TraceEnd;
-	const FVector ShotDirection = GetShotDirection(TargetPoint);
+    const FVector TargetPoint = CameraHit.bBlockingHit ? CameraHit.ImpactPoint : CameraHit.TraceEnd;
+
 	const FVector BarrelLocation = ItemMesh->GetSocketLocation(TEXT("Barrel"));
+	const FVector ShotDirection = (TargetPoint - BarrelLocation).GetSafeNormal();
+	const FVector ShotEnd = BarrelLocation + ShotDirection * 15000.f;
+
+    FHitResult ShotHit;
+
+    FCollisionQueryParams QueryParams;
+    QueryParams.AddIgnoredActor(this);
+    QueryParams.AddIgnoredActor(GetOwner());
+
+    GetWorld()->LineTraceSingleByChannel(
+        ShotHit,
+        BarrelLocation,
+        ShotEnd,
+        ECC_Visibility,
+        QueryParams
+    );
+
+    const FVector ImpactPoint = ShotHit.bBlockingHit ? ShotHit.ImpactPoint : ShotEnd;
 
 	DrawDebugLine(
 		GetWorld(),
 		BarrelLocation,
-		BarrelLocation + ShotDirection * 3000.f,
+        ImpactPoint,
 		FColor::Red,
 		false,
 		2.f,
@@ -91,9 +109,33 @@ void AWeapon::FireTrace(FHitResult& OutHit) const
 
 	Controller->GetPlayerViewPoint(CameraLocation, CameraRotation);
 
-	const FVector TraceEnd = CameraLocation + CameraRotation.Vector() * 15000.f;
+	const FVector TraceDirection = CameraRotation.Vector();
+	const FVector TraceEnd = CameraLocation + TraceDirection * 15000.f;
 
-	GetWorld()->LineTraceSingleByChannel(OutHit, CameraLocation, TraceEnd, ECC_Visibility);
+    FCollisionQueryParams QueryParams;
+    QueryParams.AddIgnoredActor(OwnerPawn);
+    QueryParams.AddIgnoredActor(this);
+
+    GetWorld()->LineTraceSingleByChannel(
+        OutHit,
+        CameraLocation,
+        TraceEnd,
+        ECC_Visibility,
+        QueryParams
+    );
+
+    const FVector DebugEnd = OutHit.bBlockingHit ? OutHit.ImpactPoint : TraceEnd;
+
+    DrawDebugLine(
+        GetWorld(),
+        CameraLocation,
+        DebugEnd,
+        FColor::Green,
+        false,
+        2.f,
+        0,
+        1.f
+    );
 }
 void AWeapon::ResetFire()
 {

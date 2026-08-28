@@ -13,6 +13,9 @@
 #include "Components/Combat/CombatComponent.h"
 #include "Kismet/GameplayStatics.h"
 
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Sight.h"
+
 AEcho::AEcho()
 {
     PrimaryActorTick.bCanEverTick = true;
@@ -43,6 +46,17 @@ AEcho::AEcho()
     GetMesh()->SetGenerateOverlapEvents(false);
 
     HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+
+    StimuliSourceComponent =
+        CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(
+            TEXT("StimuliSource")
+        );
+
+    StimuliSourceComponent->RegisterForSense(
+        UAISense_Sight::StaticClass()
+    );
+
+    StimuliSourceComponent->bAutoRegister = true;
 };
 void AEcho::BeginPlay()
 {

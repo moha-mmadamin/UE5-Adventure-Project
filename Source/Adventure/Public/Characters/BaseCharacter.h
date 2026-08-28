@@ -18,13 +18,14 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	void SetMovementSpeed(float Speed);
+
 	void PlayFireMontage(const FName& SectionName);
 	void PlayEquipMontage(const FName& SectionName);
 	void PlayReloadMontage(const FName& SectionName);
 
 protected:
 	virtual void BeginPlay() override;
-	void SetMovementSpeed(float Speed);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category= "Combat", meta=(AllowPrivateAccess="true"))
 	UCombatComponent* CombatComponent;

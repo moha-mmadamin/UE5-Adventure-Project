@@ -17,6 +17,7 @@ class UAnimMontage;
 class UInputMappingContext;
 class UInputAction;
 class AActor;
+class UAIPerceptionStimuliSourceComponent;
 
 UCLASS()
 class ADVENTURE_API AEcho : public ABaseCharacter
@@ -80,6 +81,9 @@ private:
 	void StopSprint();
 	void Fire();
 	void Reload();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
+	UAIPerceptionStimuliSourceComponent* StimuliSourceComponent;
 	
 	UPROPERTY(VisibleAnywhere, Category = Hair)
 	UGroomComponent* Hair;

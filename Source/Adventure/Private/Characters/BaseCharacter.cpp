@@ -26,7 +26,10 @@ void ABaseCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 }
 void ABaseCharacter::SetMovementSpeed(float Speed)
 {
-    GetCharacterMovement()->MaxWalkSpeed = Speed;
+	if(GetCharacterMovement())
+	{
+		GetCharacterMovement()->MaxWalkSpeed = Speed;
+	}
 }
 void ABaseCharacter::PlayFireMontage(const FName& SectionName)
 {
