@@ -4,6 +4,7 @@
 #include "DrawDebugHelpers.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/Controller.h"
+#include "Components/Health/HealthComponent.h"
 
 AWeapon::AWeapon()
 {
@@ -56,16 +57,29 @@ bool AWeapon::TryFire()
 
     const FVector ImpactPoint = ShotHit.bBlockingHit ? ShotHit.ImpactPoint : ShotEnd;
 
-	DrawDebugLine(
-		GetWorld(),
-		BarrelLocation,
-        ImpactPoint,
-		FColor::Red,
-		false,
-		2.f,
-		0,
-		2.f
-	);
+	if(ShotHit.bBlockingHit)
+	{
+		AActor* HitActor = ShotHit.GetActor();
+		if(HitActor)
+		{
+			UHealthComponent* HealthComponent = HitActor->FindComponentByClass<UHealthComponent>();
+			if(HealthComponent)
+			{
+				HealthComponent->TakeDamage(10.f);
+			}
+		}
+	}
+
+	//DrawDebugLine(
+	//	GetWorld(),
+	//	BarrelLocation,
+ //       ImpactPoint,
+	//	FColor::Red,
+	//	false,
+	//	2.f,
+	//	0,
+	//	2.f
+	//);
 
 	SpawnParticle();
 	ConsumeAmmo();
@@ -75,7 +89,7 @@ bool AWeapon::TryFire()
 }
 void AWeapon::ReloadAmmo()
 {
-    if(!CanReload()) return;
+    if(!CanReloadAmmo()) return;
 
 	const int32 NeededAmmo = MagazineCapacity - CurrentAmmo;
 	const int32 AmmoToLoad = FMath::Min(NeededAmmo, ReserveAmmo);
@@ -85,7 +99,7 @@ void AWeapon::ReloadAmmo()
 
 	OnAmmoChanged.Broadcast(CurrentAmmo, ReserveAmmo);
 }
-bool AWeapon::CanReload() const
+bool AWeapon::CanReloadAmmo() const
 {
 	return CurrentAmmo < MagazineCapacity && ReserveAmmo > 0;
 }
@@ -126,16 +140,16 @@ void AWeapon::FireTrace(FHitResult& OutHit) const
 
     const FVector DebugEnd = OutHit.bBlockingHit ? OutHit.ImpactPoint : TraceEnd;
 
-    DrawDebugLine(
-        GetWorld(),
-        CameraLocation,
-        DebugEnd,
-        FColor::Green,
-        false,
-        2.f,
-        0,
-        1.f
-    );
+    //DrawDebugLine(
+    //    GetWorld(),
+    //    CameraLocation,
+    //    DebugEnd,
+    //    FColor::Green,
+    //    false,
+    //    2.f,
+    //    0,
+    //    1.f
+    //);
 }
 void AWeapon::ResetFire()
 {

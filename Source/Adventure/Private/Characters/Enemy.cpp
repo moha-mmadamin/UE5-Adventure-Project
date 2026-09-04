@@ -1,22 +1,28 @@
 #include "Characters/Enemy.h"
 #include "AIController.h"
 #include "Navigation/PathFollowingComponent.h"
+#include "Components/StaticMeshComponent.h"
 #include "Items/Weapons/Weapon.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/AI/AIComponent.h"
 #include "Components/Perception/PerceptionComponent.h"
 #include "Components/Combat/CombatComponent.h"
+#include "Components/WidgetComponent.h"
+#include "Components/Health/HealthComponent.h"
+#include "UI/HealthBarWidget.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
+#include "UI/EnemyHealthBar.h"
 
 AEnemy::AEnemy()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	GetCharacterMovement()->bOrientRotationToMovement = true;
-	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
-	bUseControllerRotationRoll = false;
+
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	bUseControllerRotationPitch = true;
+	bUseControllerRotationYaw = true;
+	bUseControllerRotationRoll = true;
     
     HolsterMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HolsterMesh"));
     HolsterMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -25,6 +31,13 @@ AEnemy::AEnemy()
     AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComponent"));
     PerceptionComponent = CreateDefaultSubobject<UPerceptionComponent>(TEXT("PerceptionComponent"));
     AIComponent = CreateDefaultSubobject<UAIComponent>(TEXT("AIComponent"));
+    HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+    HealthWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthWidget"));
+
+    HealthWidget->SetupAttachment(GetRootComponent());
+    HealthWidget->SetWidgetSpace(EWidgetSpace::Screen);
+    HealthWidget->SetDrawSize(FVector2D(200.f, 50.f));
+    HealthWidget->SetRelativeLocation(FVector(0.f, 0.f, 200.f));
 
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     GetCapsuleComponent()->SetCollisionResponseToAllChannels(ECR_Block);
@@ -48,7 +61,19 @@ void AEnemy::BeginPlay()
             TEXT("HolsterSocket")
         );
     }
-    EnemyController = Cast<AAIController>(GetController());
+    if (HealthWidget)
+    {
+        UUserWidget* Widget = HealthWidget->GetUserWidgetObject();
+        if (Widget)
+        {
+            EnemyHealthBar = Cast<UEnemyHealthBar>(Widget);
+            if (EnemyHealthBar)
+            {
+                EnemyHealthBar->SetHealthPercentage(HealthComponent->GetHealthPercent());
+                HealthComponent->OnHealthChanged.AddDynamic(EnemyHealthBar,&UEnemyHealthBar::SetHealthPercentage);
+            }
+        }
+    }
 }
 void AEnemy::Tick(float DeltaTime)
 {
@@ -59,13 +84,6 @@ void AEnemy::PossessedBy(AController* NewController)
     Super::PossessedBy(NewController);
 
     EnemyController = Cast<AAIController>(NewController);
-
-    UE_LOG(
-        LogTemp,
-        Warning,
-        TEXT("Enemy possessed by: %s"),
-        *GetNameSafe(NewController)
-    );
 
     if(AIComponent)
     {
@@ -84,12 +102,6 @@ void AEnemy::DeactivatePerception()
         PerceptionComponent->Deactivate();
     }
 }
-void AEnemy::BeginFiring()
-{
-    if(CombatComponent->GetCombatState() != ECombatState::ECS_Aiming) return;
-
-    GetWorldTimerManager().SetTimer(AttackTimer, this, &AEnemy::TryFire, 0.1f, true);
-}
 void AEnemy::Die()
 {
     if(!AIComponent) return;
@@ -106,41 +118,5 @@ void AEnemy::Die()
     GetCharacterMovement()->DisableMovement();
     DeactivatePerception();
 
-    GetCapsuleComponent()->SetCollisionEnabled(
-        ECollisionEnabled::NoCollision
-    );
-}
-void AEnemy::TryFire()
-{
-    if(!CombatComponent) return;
-
-    if(CombatComponent->CanFire())
-    {
-        CombatComponent->Fire();
-    }
-    else
-    {
-        TryReload();
-    }
-}
-void AEnemy::TryReload()
-{
-    if(!CombatComponent) return;
-
-    //if(!CombatComponent->CanReload()) return;
-    GetWorldTimerManager().ClearTimer(AttackTimer);
-
-    CombatComponent->Reload();
-}
-void AEnemy::StartAiming()
-{
-    if(!CombatComponent) return;
-    CombatComponent->StartAiming();
-
-    GetWorldTimerManager().SetTimer(AimTimer, this, &AEnemy::BeginFiring, AimDelay, false);
-}
-void AEnemy::StopAiming()
-{
-    if(!CombatComponent) return;
-    CombatComponent->StopAiming();
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }

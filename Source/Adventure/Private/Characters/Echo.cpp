@@ -47,16 +47,16 @@ AEcho::AEcho()
 
     HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 
-    StimuliSourceComponent =
-        CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(
-            TEXT("StimuliSource")
-        );
+    //StimuliSourceComponent =
+    //    CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(
+    //        TEXT("StimuliSource")
+    //    );
 
-    StimuliSourceComponent->RegisterForSense(
-        UAISense_Sight::StaticClass()
-    );
+    //StimuliSourceComponent->RegisterForSense(
+    //    UAISense_Sight::StaticClass()
+    //);
 
-    StimuliSourceComponent->bAutoRegister = true;
+    //StimuliSourceComponent->bAutoRegister = true;
 };
 void AEcho::BeginPlay()
 {
@@ -120,6 +120,7 @@ void AEcho::StartAiming()
     if(!CombatComponent) return;
 
     CombatComponent->StartAiming();
+    
     
     if(AmmoWidget && CombatComponent->GetCombatState() == ECombatState::ECS_Aiming)
     {

@@ -27,7 +27,7 @@ public:
 	void AttachMeshToSocket(USceneComponent* Parent, const FName& SocketName);
 	bool TryFire();
 	void ReloadAmmo();
-	bool CanReload() const;
+	bool CanReloadAmmo() const;
 	bool CanFire() const;
 	
 	UPROPERTY(BlueprintAssignable)

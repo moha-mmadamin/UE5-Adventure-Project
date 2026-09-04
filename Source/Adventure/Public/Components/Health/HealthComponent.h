@@ -18,15 +18,28 @@ class ADVENTURE_API UHealthComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	UHealthComponent();
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	UFUNCTION(BlueprintCallable, Category = "Health")
     void TakeDamage(float DamageAmount);
+
+	UFUNCTION(BlueprintCallable, Category = "Health")
     void Heal(float HealAmount);
+
 	float GetHealthPercent() const;
 
     UPROPERTY(BlueprintAssignable)
     FOnHealthChanged OnHealthChanged;
+
+    UFUNCTION(BlueprintPure, Category = "Health")
+    float GetCurrentHealth() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	void SetCurrentHealth(float NewHealth);
+
+    UFUNCTION(BlueprintPure, Category = "Health")
+    float GetMaxHealth() const;
 
 protected:
 	virtual void BeginPlay() override;
@@ -40,7 +53,7 @@ private:
     float CurrentHealth = 100.0f;
 
 public:
-	FORCEINLINE float GetCurrentHealth() const{ return CurrentHealth; };
-    FORCEINLINE float GetMaxHealth() const{ return MaxHealth; };
+	//FORCEINLINE float GetCurrentHealth() const{ return CurrentHealth; };
+    //FORCEINLINE float GetMaxHealth() const{ return MaxHealth; };
 		
 };

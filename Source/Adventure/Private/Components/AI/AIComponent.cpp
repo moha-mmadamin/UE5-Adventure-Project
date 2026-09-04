@@ -185,17 +185,17 @@ void UAIComponent::BeginCombat()
 {
     if(!CombatComponent) return;
 
-    //if(CombatComponent->GetEquippedWeapon()->GetCurrentAmmo() <= 0)
-    //{
-    //    CombatComponent->StopAiming();
-    //    CombatComponent->Reload();
-    //    return;
-    //}
-    //if(CombatComponent->GetCombatState() == ECombatState::ECS_Reloading) return;
+    if(CombatComponent->GetEquippedWeapon()->GetCurrentAmmo() <= 0)
+    {
+        CombatComponent->StopAiming();
+        CombatComponent->Reload();
+        return;
+    }
+    if(CombatComponent->GetCombatState() == ECombatState::ECS_Reloading) return;
 
-    //CombatComponent->Arm();
-    //CombatComponent->StartAiming();
-    //CombatComponent->Fire();
+    CombatComponent->Arm();
+    CombatComponent->StartAiming();
+    CombatComponent->Fire();
 }
 void UAIComponent::EndCombat()
 {

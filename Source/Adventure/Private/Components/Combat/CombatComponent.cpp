@@ -32,7 +32,7 @@ void UCombatComponent::Fire()
 void UCombatComponent::Reload()
 {
     if(!CanReload()) return;
-    if(!EquippedWeapon || !EquippedWeapon->CanReload()) return;
+    if(!EquippedWeapon || !EquippedWeapon->CanReloadAmmo()) return;
 
 	Character->PlayReloadMontage(FName("Reload"));
     CombatState = ECombatState::ECS_Reloading;
@@ -60,7 +60,7 @@ void UCombatComponent::EquipWeapon(AWeapon* Weapon)
 bool UCombatComponent::CanReload() const
 {
     return EquippedWeapon && 
-        EquippedWeapon->CanReload() &&
+        EquippedWeapon->CanReloadAmmo() &&
         WeaponState == EWeaponState::EWS_Equipped &&
         CombatState == ECombatState::ECS_Idle;
 }

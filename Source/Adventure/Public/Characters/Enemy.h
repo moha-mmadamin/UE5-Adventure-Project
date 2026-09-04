@@ -4,8 +4,7 @@
 #include "BaseCharacter.h"
 #include "EnemyTypes.h"
 #include "CharacterTypes.h"
-#include "Components/StaticMeshComponent.h"
-#include "Navigation/PathFollowingComponent.h"
+#include "UI/HealthBarWidget.h"
 #include "Enemy.generated.h"
 
 class AAIController;
@@ -14,6 +13,9 @@ class UPerceptionComponent;
 class UAIComponent;
 class UAIPerceptionComponent;
 class UAISenseConfig_Sight;
+class UHealthComponent;
+class UWidgetComponent;
+class UEnemyHealthBar;
 
 UCLASS()
 class ADVENTURE_API AEnemy : public ABaseCharacter
@@ -29,19 +31,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-
-    /*
-    Combat
-    */
-
-    void StartAiming();
-    void StopAiming();
-    void BeginFiring();
-    void TryFire();
-    void TryReload();
-
     void Die();
-
     void DeactivatePerception();
 
     /*
@@ -80,6 +70,19 @@ private:
 
     UPROPERTY(EditAnywhere, Category = "Combat")
     float AimDelay = 0.5f;
+
+    /*
+    Health
+    */
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health", meta = (AllowPrivateAccess = "true"))
+    UHealthComponent* HealthComponent;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health", meta = (AllowPrivateAccess = "true"))
+    UWidgetComponent* HealthWidget;
+
+    UPROPERTY()
+    UEnemyHealthBar* EnemyHealthBar;
 
     /*
     Combat Timers
