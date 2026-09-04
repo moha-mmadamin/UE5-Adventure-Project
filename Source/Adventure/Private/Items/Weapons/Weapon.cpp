@@ -65,7 +65,16 @@ bool AWeapon::TryFire()
 			UHealthComponent* HealthComponent = HitActor->FindComponentByClass<UHealthComponent>();
 			if(HealthComponent)
 			{
-				HealthComponent->TakeDamage(10.f);
+                const float Damage = GetDamageForBone(ShotHit.BoneName);
+                UE_LOG(
+                    LogTemp,
+                    Warning,
+                    TEXT("Hit Actor: %s | Bone: %s | Damage: %.1f"),
+                    *GetNameSafe(HitActor),
+                    *ShotHit.BoneName.ToString(),
+                    Damage
+                );
+				HealthComponent->TakeDamage(Damage);
 			}
 		}
 	}
@@ -166,6 +175,42 @@ void AWeapon::StartFireCooldown()
         FireRate,
         false
     );
+}
+float AWeapon::GetDamageForBone(FName BoneName) const
+{
+	if(BoneName == TEXT("head"))
+	{
+		return FMath::RandRange(35.f, 50.f);
+	}
+    if (BoneName == TEXT("spine_01") ||
+        BoneName == TEXT("spine_02") ||
+        BoneName == TEXT("spine_03") ||
+        BoneName == TEXT("spine_04") ||
+        BoneName == TEXT("spine_05"))
+    {
+        return FMath::RandRange(15.f, 30.f);
+    }
+
+    if (BoneName == TEXT("upperarm_l") ||
+        BoneName == TEXT("upperarm_r") ||
+        BoneName == TEXT("lowerarm_l") ||
+        BoneName == TEXT("lowerarm_r") ||
+        BoneName == TEXT("hand_l") ||
+        BoneName == TEXT("hand_r"))
+    {
+        return FMath::RandRange(5.f, 10.f);
+    }
+
+    if (BoneName == TEXT("thigh_l") ||
+        BoneName == TEXT("thigh_r") ||
+        BoneName == TEXT("calf_l") ||
+        BoneName == TEXT("calf_r") ||
+        BoneName == TEXT("foot_l") ||
+        BoneName == TEXT("foot_r"))
+    {
+        return FMath::RandRange(5.f, 10.f);
+    }
+    return 15.f;
 }
 FVector AWeapon::GetShotDirection(const FVector& TargetPoint) const
 {

@@ -52,6 +52,7 @@ private:
 	void FireTrace(FHitResult& OutHit) const;
 	void ResetFire();
 	void StartFireCooldown();
+	float GetDamageForBone(FName BoneName) const;
 	bool bCanFire = true;
 	FVector GetShotDirection(const FVector& TargetPoint) const;
 
