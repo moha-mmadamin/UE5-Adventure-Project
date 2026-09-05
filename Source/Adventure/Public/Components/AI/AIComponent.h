@@ -22,6 +22,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
     void InitializeAI();
     void SetEnemyState(EEnemyState NewState);
+    void StopAI();
 
 protected:
 	virtual void BeginPlay() override;

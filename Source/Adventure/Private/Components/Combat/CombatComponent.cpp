@@ -69,13 +69,15 @@ bool UCombatComponent::CanFire() const
     return EquippedWeapon && 
         EquippedWeapon->CanFire() &&
         WeaponState == EWeaponState::EWS_Equipped &&
-        CombatState == ECombatState::ECS_Aiming;
+        CombatState == ECombatState::ECS_Aiming && 
+        Character->GetCharacterState() == ECharacterState::ECS_Alive;
 }
 bool UCombatComponent::CanAim() const
 {
     return EquippedWeapon &&
         WeaponState == EWeaponState::EWS_Equipped &&
-        CombatState == ECombatState::ECS_Idle;
+        CombatState == ECombatState::ECS_Idle &&
+        Character->GetCharacterState() == ECharacterState::ECS_Alive;
 }
 bool UCombatComponent::CanArm() const
 {

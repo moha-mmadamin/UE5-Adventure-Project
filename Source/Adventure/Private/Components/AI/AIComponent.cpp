@@ -120,6 +120,26 @@ void UAIComponent::SetEnemyState(EEnemyState NewState)
 
     OnStateChanged(PreviousState,NewState);
 }
+void UAIComponent::StopAI()
+{
+    UWorld* World = GetWorld();
+
+    if (World)
+    {
+        World->GetTimerManager().ClearTimer(PatrolTimer);
+        World->GetTimerManager().ClearTimer(ChaseTimer);
+        World->GetTimerManager().ClearTimer(LOSTimer);
+        World->GetTimerManager().ClearTimer(SearchTimer);
+    }
+
+    if (PerceptionComponent)
+    {
+        PerceptionComponent->OnSightDetected.RemoveAll(this);
+        PerceptionComponent->OnSightLost.RemoveAll(this);
+        PerceptionComponent->OnNoiseHeard.RemoveAll(this);
+        PerceptionComponent->OnDamaged.RemoveAll(this);
+    }
+}
 void UAIComponent::OnStateChanged(EEnemyState PreviousState, EEnemyState NewState)
 {
     switch (NewState)
@@ -139,7 +159,6 @@ void UAIComponent::OnStateChanged(EEnemyState PreviousState, EEnemyState NewStat
             break;
 
         case EEnemyState::EES_Idle:
-        case EEnemyState::EES_Dead:
 
             OwnerEnemy->SetMovementSpeed(0.f);
             break;

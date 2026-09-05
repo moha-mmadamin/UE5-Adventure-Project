@@ -12,6 +12,8 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
 	HealthPercent
 );
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ADVENTURE_API UHealthComponent : public UActorComponent
 {
@@ -31,6 +33,9 @@ public:
 
     UPROPERTY(BlueprintAssignable)
     FOnHealthChanged OnHealthChanged;
+
+    UPROPERTY(BlueprintAssignable)
+    FOnDeath OnDeath;
 
     UFUNCTION(BlueprintPure, Category = "Health")
     float GetCurrentHealth() const;

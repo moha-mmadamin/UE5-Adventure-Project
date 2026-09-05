@@ -20,9 +20,9 @@ AEnemy::AEnemy()
 	PrimaryActorTick.bCanEverTick = true;
 
 	GetCharacterMovement()->bOrientRotationToMovement = false;
-	bUseControllerRotationPitch = true;
+	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = true;
-	bUseControllerRotationRoll = true;
+	bUseControllerRotationRoll = false;
     
     HolsterMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HolsterMesh"));
     HolsterMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -74,6 +74,10 @@ void AEnemy::BeginPlay()
             }
         }
     }
+    if(HealthComponent)
+    {
+        HealthComponent->OnDeath.AddDynamic(this, &AEnemy::Die);
+    }
 }
 void AEnemy::Tick(float DeltaTime)
 {
@@ -90,33 +94,26 @@ void AEnemy::PossessedBy(AController* NewController)
         AIComponent->InitializeAI();
     }
 }
-void AEnemy::DeactivatePerception()
-{
-    if (AIPerceptionComponent)
-    {
-        AIPerceptionComponent->Deactivate();
-    }
-
-    if (PerceptionComponent)
-    {
-        PerceptionComponent->Deactivate();
-    }
-}
 void AEnemy::Die()
 {
-    if(!AIComponent) return;
-    
-    AIComponent->SetEnemyState(EEnemyState::EES_Dead);
-    CombatComponent->StopAiming();
+    Super::Die();
 
-    if(EnemyController)
+    if(CombatComponent)
     {
-        EnemyController->StopMovement();
-        EnemyController->ClearFocus(EAIFocusPriority::Gameplay);
+        AWeapon* Weapon = CombatComponent->GetEquippedWeapon();
+        if(Weapon)
+        {
+            Weapon->SetLifeSpan(5.0f);
+        }
+    }    
+    if(HealthWidget)
+    {
+       HealthWidget->SetVisibility(false);
     }
-
-    GetCharacterMovement()->DisableMovement();
-    DeactivatePerception();
-
+    if(AIComponent)
+    {
+        AIComponent->StopAI();
+    }
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    SetLifeSpan(5.0f);
 }

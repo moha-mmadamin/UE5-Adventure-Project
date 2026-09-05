@@ -31,8 +31,8 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-    void Die();
-    void DeactivatePerception();
+    UFUNCTION()
+    virtual void Die() override;
 
     /*
     Components
