@@ -5,10 +5,10 @@
 #include "TimerManager.h"
 #include "Weapon.generated.h"
 
-
 class UBoxComponent;
 class UNiagaraSystem;
 class AEcho;
+class UParticleSystem;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(
 	FOnAmmoChanged,
@@ -51,6 +51,8 @@ private:
 	void ConsumeAmmo();
 	void FireTrace(FHitResult& OutHit) const;
 	void ResetFire();
+	void ApplyDamage(const FHitResult& HitResult);
+	void SpawnBlood(const FHitResult& HitResult);
 	void StartFireCooldown();
 	float GetDamageForBone(FName BoneName) const;
 	bool bCanFire = true;
@@ -61,6 +63,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	float FireRate = 0.5f;
+
+    UPROPERTY(EditAnywhere, Category = "Effects")
+    UParticleSystem* BloodParticle;
 
 public:
 	FORCEINLINE int GetCurrentAmmo() const { return CurrentAmmo; }

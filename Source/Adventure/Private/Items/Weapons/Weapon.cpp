@@ -4,6 +4,7 @@
 #include "DrawDebugHelpers.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/Controller.h"
+#include "Kismet/GameplayStatics.h"
 #include "Components/Health/HealthComponent.h"
 
 AWeapon::AWeapon()
@@ -57,28 +58,6 @@ bool AWeapon::TryFire()
 
     const FVector ImpactPoint = ShotHit.bBlockingHit ? ShotHit.ImpactPoint : ShotEnd;
 
-	if(ShotHit.bBlockingHit)
-	{
-		AActor* HitActor = ShotHit.GetActor();
-		if(HitActor)
-		{
-			UHealthComponent* HealthComponent = HitActor->FindComponentByClass<UHealthComponent>();
-			if(HealthComponent)
-			{
-                const float Damage = GetDamageForBone(ShotHit.BoneName);
-                UE_LOG(
-                    LogTemp,
-                    Warning,
-                    TEXT("Hit Actor: %s | Bone: %s | Damage: %.1f"),
-                    *GetNameSafe(HitActor),
-                    *ShotHit.BoneName.ToString(),
-                    Damage
-                );
-				HealthComponent->TakeDamage(Damage);
-			}
-		}
-	}
-
 	//DrawDebugLine(
 	//	GetWorld(),
 	//	BarrelLocation,
@@ -90,6 +69,8 @@ bool AWeapon::TryFire()
 	//	2.f
 	//);
 
+    ApplyDamage(ShotHit);
+    SpawnBlood(ShotHit);
 	SpawnParticle();
 	ConsumeAmmo();
 	StartFireCooldown();
@@ -146,8 +127,8 @@ void AWeapon::FireTrace(FHitResult& OutHit) const
         ECC_Visibility,
         QueryParams
     );
-
     const FVector DebugEnd = OutHit.bBlockingHit ? OutHit.ImpactPoint : TraceEnd;
+
 
     //DrawDebugLine(
     //    GetWorld(),
@@ -163,6 +144,50 @@ void AWeapon::FireTrace(FHitResult& OutHit) const
 void AWeapon::ResetFire()
 {
 	bCanFire = true;
+}
+void AWeapon::ApplyDamage(const FHitResult& HitResult)
+{
+    if(!HitResult.bBlockingHit) return;
+    AActor* HitActor = HitResult.GetActor();
+    if(!HitActor) return;
+
+    UHealthComponent* HealthComponent = HitActor->FindComponentByClass<UHealthComponent>();
+    if(!HealthComponent) return;
+
+    const float Damage = GetDamageForBone(HitResult.BoneName);
+
+    UE_LOG(
+        LogTemp,
+        Warning,
+        TEXT("Hit Actor: %s | Bone: %s | Damage: %.1f"),
+        *GetNameSafe(HitActor),
+        *HitResult.BoneName.ToString(),
+        Damage
+    );
+
+    HealthComponent->TakeDamage(Damage);
+}
+void AWeapon::SpawnBlood(const FHitResult& HitResult)
+{
+    if(!HitResult.bBlockingHit) return;
+    AActor* HitActor = HitResult.GetActor();
+    if(!HitActor) return;
+    UHealthComponent* HealthComponent = HitActor->FindComponentByClass<UHealthComponent>();
+    if(!HealthComponent) return;
+    if(!BloodParticle) return;
+
+    const FVector SpawnLocation = HitResult.ImpactPoint;
+    FRotator SpawnRotation = HitResult.ImpactNormal.Rotation();
+    SpawnRotation.Pitch -= 90.0f;
+    const FVector SpawnScale(0.4f);
+
+    UGameplayStatics::SpawnEmitterAtLocation(
+        GetWorld(),
+        BloodParticle,
+        SpawnLocation,
+        SpawnRotation,
+        SpawnScale
+    );
 }
 void AWeapon::StartFireCooldown()
 {
@@ -239,4 +264,3 @@ void AWeapon::SpawnParticle() const
 	);
 	
 }
-
