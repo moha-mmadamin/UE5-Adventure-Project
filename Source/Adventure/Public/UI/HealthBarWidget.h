@@ -17,9 +17,15 @@ public:
 	UFUNCTION()
 	void UpdateHealthBar(float HealthPercent);
 
+	UFUNCTION()
+	void UpdateArmorBar(float ArmorPercent);
+
 protected:
 	UPROPERTY(meta = (BindWidget))
 	UProgressBar* HealthBar;
+
+	UPROPERTY(meta = (BindWidget))
+	UProgressBar* ArmorBar;
 
 	UPROPERTY()
 	UHealthComponent* HealthComponent;

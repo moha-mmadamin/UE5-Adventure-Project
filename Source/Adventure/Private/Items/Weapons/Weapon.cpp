@@ -148,6 +148,7 @@ void AWeapon::ResetFire()
 void AWeapon::ApplyDamage(const FHitResult& HitResult)
 {
     if(!HitResult.bBlockingHit) return;
+
     AActor* HitActor = HitResult.GetActor();
     if(!HitActor) return;
 
@@ -159,10 +160,9 @@ void AWeapon::ApplyDamage(const FHitResult& HitResult)
     UE_LOG(
         LogTemp,
         Warning,
-        TEXT("Hit Actor: %s | Bone: %s | Damage: %.1f"),
-        *GetNameSafe(HitActor),
-        *HitResult.BoneName.ToString(),
-        Damage
+        TEXT("DAMAGE: %.1f -> %s"),
+        Damage,
+        *GetNameSafe(HitActor)
     );
 
     HealthComponent->TakeDamage(Damage);
