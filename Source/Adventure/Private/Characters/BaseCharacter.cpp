@@ -25,8 +25,12 @@ int32 ABaseCharacter::PlayDeathMontage()
 }
 void ABaseCharacter::Die()
 {
+	if(CharacterState == ECharacterState::ECS_Dead) return;
+
 	Tags.Add(FName("Dead"));
 	CharacterState = ECharacterState::ECS_Dead;
+    GetCharacterMovement()->DisableMovement();
+    GetCharacterMovement()->StopMovementImmediately();
 	PlayDeathMontage();
 }
 void ABaseCharacter::PlayMontageSection(UAnimMontage* Montage, const FName& SectionName)

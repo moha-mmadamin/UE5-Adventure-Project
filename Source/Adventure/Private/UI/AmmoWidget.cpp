@@ -6,22 +6,12 @@ void UAmmoWidget::BindWeapon(AWeapon* Weapon)
 {
     if(!Weapon) return;
     CurrentWeapon = Weapon;
-    Weapon->OnAmmoChanged.AddDynamic(
-		this,
-		&UAmmoWidget::UpdateAmmo
-	);
+    Weapon->OnAmmoChanged.AddDynamic(this, &UAmmoWidget::UpdateAmmo);
 }
 
 void UAmmoWidget::UpdateAmmo(int CurrentAmmo, int MaxAmmo)
 {
-	FString Text = FString::Printf(
-        TEXT("%d/%d"),
-        CurrentAmmo,
-        MaxAmmo
-    );
+	FString Text = FString::Printf(TEXT("%d/%d"), CurrentAmmo, MaxAmmo);
 
-    AmmoText->SetText(
-        FText::FromString(Text)
-    );
-
+    AmmoText->SetText(FText::FromString(Text));
 }

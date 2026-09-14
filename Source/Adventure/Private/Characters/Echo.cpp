@@ -22,10 +22,15 @@ AEcho::AEcho()
 
     CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
     CameraBoom->SetupAttachment(GetRootComponent());
+    CameraBoom->AddLocalOffset(FVector(0.f, 0.0f, 48.5f));
     CameraBoom->TargetArmLength = 130.f;
+    CameraBoom->SocketOffset = FVector(0.0f, 50.f, 25.0f);
+    CameraBoom->bUsePawnControlRotation = true;
+    CameraBoom->bInheritRoll = false;
 
     ViewCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ViewCamera"));
     ViewCamera->SetupAttachment(CameraBoom);
+    ViewCamera->AddLocalRotation(FRotator(0.0f, -5.0f, 0.0f));
 
     Hair = CreateDefaultSubobject<UGroomComponent>(TEXT("Hair"));
     Hair->SetupAttachment(GetMesh());
@@ -62,6 +67,8 @@ void AEcho::BeginPlay()
 {
     Super::BeginPlay();
 
+    HealthComponent->bHasArmor = true;
+
     if(APlayerController* PlayerController = Cast<APlayerController>(Controller))
     {
         if(UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -87,6 +94,10 @@ void AEcho::BeginPlay()
             HealthWidget->AddToViewport();
             HealthWidget->SetHealthComponent(HealthComponent);
         }
+    }
+    if(HealthComponent)
+    {
+        HealthComponent->OnDeath.AddDynamic(this, &AEcho::Die);
     }
 }
 void AEcho::Tick(float DeltaTime)
@@ -160,6 +171,36 @@ void AEcho::Reload()
     if(CombatComponent)
     {
         CombatComponent->Reload();
+    }
+}
+void AEcho::Die()
+{
+    Super::Die();
+
+
+}
+void AEcho::DeathFinished_Implementation()
+{
+    if (DeathScreenClass)
+    {
+        DeathScreenWidget = CreateWidget<UUserWidget>(GetWorld(), DeathScreenClass);
+
+        if (DeathScreenWidget)
+        {
+            DeathScreenWidget->AddToViewport();
+
+            APlayerController* PC = GetWorld()->GetFirstPlayerController();
+            if (PC)
+            {
+                FInputModeGameAndUI InputMode;
+                InputMode.SetWidgetToFocus(DeathScreenWidget->TakeWidget());
+                InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+                PC->SetInputMode(InputMode);
+                PC->bShowMouseCursor = true;
+                PC->SetPause(true);
+            }
+        }
     }
 }
 void AEcho::Move(const FInputActionValue& Value)
