@@ -7,7 +7,7 @@
 #include "AmmoWidget.generated.h"
 
 class UTextBlock;
-class AWeapon;
+class ABaseWeapon;
 
 UCLASS()
 class ADVENTURE_API UAmmoWidget : public UUserWidget
@@ -15,14 +15,14 @@ class ADVENTURE_API UAmmoWidget : public UUserWidget
 	GENERATED_BODY()
 	
 public:
-	void BindWeapon(AWeapon* Weapon);
+	void BindWeapon(ABaseWeapon* Weapon);
 
 	UFUNCTION()
 	void UpdateAmmo(int CurrentAmmo, int MaxAmmo);
 
 private:
 	UPROPERTY()
-	AWeapon* CurrentWeapon;
+	ABaseWeapon* CurrentWeapon;
 
 	UPROPERTY(meta=(BindWidget))
 	UTextBlock* AmmoText;

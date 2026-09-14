@@ -6,7 +6,7 @@
 #include "CombatComponent.generated.h"
 
 class ABaseCharacter;
-class AWeapon;
+class ABaseWeapon;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ADVENTURE_API UCombatComponent : public UActorComponent
@@ -21,7 +21,7 @@ public:
 	void Reload();
 	void StartAiming();
 	void StopAiming();
-	void EquipWeapon(AWeapon* Weapon);
+	void EquipWeapon(ABaseWeapon* Weapon);
 	void SpawnDefaultWeapon();
 	void ToggleWeapon();
 
@@ -56,7 +56,7 @@ protected:
 	FName WeaponHolsterSocket = FName("PistolSocket");
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
-	TSubclassOf<class AWeapon> WeaponClass;
+	TSubclassOf<class ABaseWeapon> WeaponClass;
 
 	UPROPERTY(EditDefaultsOnly, Category="Combat")
 	bool bSpawnDefaultWeapon = false;
@@ -66,7 +66,7 @@ private:
     ABaseCharacter* Character;
 
 	UPROPERTY(VisibleAnywhere, Category = Weapon)
-	AWeapon* EquippedWeapon;
+	ABaseWeapon* EquippedWeapon;
 
 	/*
 	Combat State
@@ -81,6 +81,6 @@ private:
 public:
 	FORCEINLINE EWeaponState GetWeaponState() const { return WeaponState; }
 	FORCEINLINE ECombatState GetCombatState() const { return CombatState; }
-	FORCEINLINE AWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
+	FORCEINLINE ABaseWeapon* GetEquippedWeapon() const { return EquippedWeapon; }
 	FORCEINLINE void SetCombatState(ECombatState NewState){ CombatState = NewState; }
 };

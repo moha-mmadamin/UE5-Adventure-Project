@@ -2,7 +2,7 @@
 #include "AIController.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "Components/StaticMeshComponent.h"
-#include "Items/Weapons/Weapon.h"
+#include "Weapons/BaseWeapon.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/AI/AIComponent.h"
 #include "Components/Perception/PerceptionComponent.h"
@@ -100,7 +100,7 @@ void AEnemy::Die()
 
     if(CombatComponent)
     {
-        AWeapon* Weapon = CombatComponent->GetEquippedWeapon();
+        ABaseWeapon* Weapon = CombatComponent->GetEquippedWeapon();
         if(Weapon)
         {
             Weapon->SetLifeSpan(5.0f);

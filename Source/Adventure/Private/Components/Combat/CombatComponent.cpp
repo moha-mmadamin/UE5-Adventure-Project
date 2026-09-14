@@ -1,6 +1,6 @@
 #include "Components/Combat/CombatComponent.h"
 #include "Characters/BaseCharacter.h"
-#include "Items/Weapons/Weapon.h"
+#include "Weapons/BaseWeapon.h"
 
 UCombatComponent::UCombatComponent()
 {
@@ -24,7 +24,7 @@ void UCombatComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 void UCombatComponent::Fire()
 {
 	if(!CanFire()) return;
-    if(EquippedWeapon && EquippedWeapon->TryFire())
+    if(EquippedWeapon && EquippedWeapon->Fire())
     {
         Character->PlayFireMontage(FName("Fire"));
     } 
@@ -49,7 +49,7 @@ void UCombatComponent::StopAiming()
 
     CombatState = ECombatState::ECS_Idle;
 }
-void UCombatComponent::EquipWeapon(AWeapon* Weapon)
+void UCombatComponent::EquipWeapon(ABaseWeapon* Weapon)
 {
     if(!Weapon || !Character) return;
     Weapon->Equip(Character->GetMesh(), WeaponHandSocket, Character, Character);
@@ -95,7 +95,7 @@ void UCombatComponent::SpawnDefaultWeapon()
     UWorld* World = GetWorld();
     if(!World || !WeaponClass) return;
 
-    AWeapon* DefaultWeapon = World->SpawnActor<AWeapon>(WeaponClass);
+    ABaseWeapon* DefaultWeapon = World->SpawnActor<ABaseWeapon>(WeaponClass);
     if(DefaultWeapon)
     {
         DefaultWeapon->Equip(Character->GetMesh(), WeaponHolsterSocket, Character, Character);

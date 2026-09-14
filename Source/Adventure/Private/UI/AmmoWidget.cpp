@@ -1,8 +1,8 @@
 #include "UI/AmmoWidget.h"
-#include "Items/Weapons/Weapon.h"
+#include "Weapons/BaseWeapon.h"
 #include "Components/TextBlock.h"
 
-void UAmmoWidget::BindWeapon(AWeapon* Weapon)
+void UAmmoWidget::BindWeapon(ABaseWeapon* Weapon)
 {
     if(!Weapon) return;
     CurrentWeapon = Weapon;

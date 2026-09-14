@@ -5,7 +5,7 @@
 #include "Components/Combat/CombatComponent.h"
 #include "Components/Perception/PerceptionComponent.h"
 #include "DrawDebugHelpers.h"
-#include "Items/Weapons/Weapon.h"
+#include "Weapons/BaseWeapon.h"
 
 UAIComponent::UAIComponent()
 {
