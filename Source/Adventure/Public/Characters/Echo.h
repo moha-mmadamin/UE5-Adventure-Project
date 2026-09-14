@@ -28,6 +28,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void DeathFinished();
 
  protected:
 	virtual void BeginPlay() override;
@@ -83,6 +85,9 @@ private:
 	void Fire();
 	void Reload();
 
+	UFUNCTION(BlueprintCallable)
+	virtual void Die() override;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	UAIPerceptionStimuliSourceComponent* StimuliSourceComponent;
 	
@@ -104,4 +109,10 @@ private:
 	TSubclassOf<UHealthBarWidget> HealthWidgetClass;
 
     UHealthBarWidget* HealthWidget;
+
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<UUserWidget> DeathScreenClass;
+
+	UPROPERTY()
+	UUserWidget* DeathScreenWidget;
 };
