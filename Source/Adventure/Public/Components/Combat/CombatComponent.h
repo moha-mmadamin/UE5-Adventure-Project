@@ -30,12 +30,8 @@ public:
 	bool CanAim() const;
 	bool CanArm() const;
 	bool CanDisarm() const;
-
-	UFUNCTION(BlueprintCallable)
-	void Arm();
-	
-	UFUNCTION(BlueprintCallable)
 	void Disarm();
+	void Arm();
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void FinishWeaponEquip();

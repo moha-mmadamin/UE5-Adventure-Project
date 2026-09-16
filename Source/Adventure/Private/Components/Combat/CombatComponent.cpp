@@ -121,14 +121,14 @@ void UCombatComponent::Arm()
     if(!CanArm()) return;
 
     Character->PlayEquipMontage(FName("Equip"));
-    CombatState = ECombatState::ECS_EquippingWeapon;
+    SetCombatState(ECombatState::ECS_EquippingWeapon);
 }
 void UCombatComponent::Disarm()
 {
 	if(!CanDisarm()) return;
 
     Character->PlayEquipMontage(FName("Unequip"));
-    CombatState = ECombatState::ECS_UnequippingWeapon;
+    SetCombatState(ECombatState::ECS_UnequippingWeapon);
 }
 void UCombatComponent::FinishWeaponEquip_Implementation()
 {

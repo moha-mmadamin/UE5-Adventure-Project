@@ -1,4 +1,5 @@
 #include "Characters/Echo.h"
+#include "Characters/Echo.h"
 #include "Animation/AnimMontage.h"
 #include "Camera/CameraComponent.h"
 #include "Characters/CharacterTypes.h"
@@ -129,9 +130,7 @@ void AEcho::EKeyPressed()
 void AEcho::StartAiming()
 {
     if(!CombatComponent) return;
-
     CombatComponent->StartAiming();
-    
     
     if(AmmoWidget && CombatComponent->GetCombatState() == ECombatState::ECS_Aiming)
     {
@@ -153,7 +152,7 @@ void AEcho::Sprint()
 {
     if(CombatComponent && CombatComponent->GetCombatState() == ECombatState::ECS_Aiming) return;
 
-    SetMovementSpeed(900.f);
+    SetMovementSpeed(600.f);
 }
 void AEcho::StopSprint()
 {
