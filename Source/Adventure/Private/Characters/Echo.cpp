@@ -87,6 +87,15 @@ void AEcho::BeginPlay()
             AmmoWidget->SetVisibility(ESlateVisibility::Hidden);
         }
     }
+    if(CrosshairClass)
+    {
+        CrosshairWidget = CreateWidget<UUserWidget>(GetWorld(), CrosshairClass);
+        if(CrosshairWidget)
+        {
+            CrosshairWidget->AddToViewport();
+            CrosshairWidget->SetVisibility(ESlateVisibility::Hidden);
+        }
+    }
     if(HealthWidgetClass)
     {
         HealthWidget = CreateWidget<UHealthBarWidget>(GetWorld(), HealthWidgetClass);
@@ -132,10 +141,8 @@ void AEcho::StartAiming()
     if(!CombatComponent) return;
     CombatComponent->StartAiming();
     
-    if(AmmoWidget && CombatComponent->GetCombatState() == ECombatState::ECS_Aiming)
-    {
-        AmmoWidget->SetVisibility(ESlateVisibility::Visible);
-    }
+    ShowAmmoWidget();
+    ShowCrosshairWidget();
 }
 void AEcho::StopAiming()
 {
@@ -143,10 +150,8 @@ void AEcho::StopAiming()
     
     CombatComponent->StopAiming();
     
-    if(AmmoWidget)
-    {
-        AmmoWidget->SetVisibility(ESlateVisibility::Hidden);
-    }
+    HideAmmoWidget();
+    HideCrosshairWidget();
 }
 void AEcho::Sprint()
 {
@@ -170,6 +175,34 @@ void AEcho::Reload()
     if(CombatComponent)
     {
         CombatComponent->Reload();
+    }
+}
+void AEcho::ShowCrosshairWidget()
+{
+    if(CrosshairWidget && CombatComponent->GetCombatState() == ECombatState::ECS_Aiming)
+    {
+        CrosshairWidget->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+void AEcho::HideCrosshairWidget()
+{
+    if(CrosshairWidget)
+    {
+        CrosshairWidget->SetVisibility(ESlateVisibility::Hidden);
+    }
+}
+void AEcho::ShowAmmoWidget()
+{
+    if(AmmoWidget && CombatComponent->GetCombatState() == ECombatState::ECS_Aiming)
+    {
+        AmmoWidget->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+void AEcho::HideAmmoWidget()
+{
+    if(AmmoWidget)
+    {
+        AmmoWidget->SetVisibility(ESlateVisibility::Hidden);
     }
 }
 void AEcho::Die()

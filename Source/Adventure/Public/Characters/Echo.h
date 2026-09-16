@@ -84,6 +84,10 @@ private:
 	void StopSprint();
 	void Fire();
 	void Reload();
+	void ShowCrosshairWidget();
+	void HideCrosshairWidget();
+	void ShowAmmoWidget();
+	void HideAmmoWidget();
 
 	UFUNCTION(BlueprintCallable)
 	virtual void Die() override;
@@ -116,6 +120,10 @@ private:
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UUserWidget> DeathScreenClass;
 
-	UPROPERTY()
 	UUserWidget* DeathScreenWidget;
+
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<UUserWidget> CrosshairClass;
+
+	UUserWidget* CrosshairWidget;
 };
