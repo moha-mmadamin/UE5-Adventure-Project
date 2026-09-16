@@ -218,8 +218,8 @@ void AEcho::Look(const FInputActionValue& Value)
 {
     const FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-    AddControllerYawInput(LookAxisVector.X);
-    AddControllerPitchInput(LookAxisVector.Y);
+    AddControllerYawInput(LookAxisVector.X * LookSensitivity);
+    AddControllerPitchInput(LookAxisVector.Y * LookSensitivity);
 }
 void AEcho::Jump()
 {

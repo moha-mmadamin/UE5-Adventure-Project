@@ -88,6 +88,9 @@ private:
 	UFUNCTION(BlueprintCallable)
 	virtual void Die() override;
 
+	UPROPERTY(EditAnywhere, Category = "Sensitivity")
+	float LookSensitivity = 1.0f;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	UAIPerceptionStimuliSourceComponent* StimuliSourceComponent;
 	
