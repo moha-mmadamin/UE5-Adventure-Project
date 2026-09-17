@@ -31,6 +31,16 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+    void HideHealthBar();
+
+    UFUNCTION()
+    void ShowHealthBar(float HealthPercent);
+
+    FTimerHandle HealthBarHideTimer;
+
+    UPROPERTY(EditAnywhere, Category = "UI")
+    float HealthBarVisibleDuration = 5.0f;
+
     UFUNCTION()
     virtual void Die() override;
 

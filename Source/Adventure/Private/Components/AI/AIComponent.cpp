@@ -16,7 +16,6 @@ void UAIComponent::BeginPlay()
 	Super::BeginPlay();
 
     OwnerEnemy = Cast<AEnemy>(GetOwner());
-
     if(!OwnerEnemy) return;
 
     EnemyController = Cast<AAIController>(OwnerEnemy->GetController());
@@ -142,6 +141,8 @@ void UAIComponent::StopAI()
 }
 void UAIComponent::OnStateChanged(EEnemyState PreviousState, EEnemyState NewState)
 {
+    if(!OwnerEnemy) return;
+
     switch (NewState)
     {
         case EEnemyState::EES_Searching:

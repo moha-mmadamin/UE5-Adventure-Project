@@ -69,6 +69,7 @@ void AEnemy::BeginPlay()
             EnemyHealthBar = Cast<UEnemyHealthBar>(Widget);
             if (EnemyHealthBar)
             {
+                EnemyHealthBar->SetVisibility(ESlateVisibility::Hidden);
                 EnemyHealthBar->SetHealthPercentage(HealthComponent->GetHealthPercent());
                 HealthComponent->OnHealthChanged.AddDynamic(EnemyHealthBar,&UEnemyHealthBar::SetHealthPercentage);
             }
@@ -76,8 +77,33 @@ void AEnemy::BeginPlay()
     }
     if(HealthComponent)
     {
+        HealthComponent->OnHealthChanged.AddDynamic(this, &AEnemy::ShowHealthBar);
         HealthComponent->OnDeath.AddDynamic(this, &AEnemy::Die);
     }
+}
+void AEnemy::ShowHealthBar(float HealthPercent)
+{
+    if(!IsValid(this) || !EnemyHealthBar) return;
+
+	EnemyHealthBar->SetVisibility(ESlateVisibility::Visible);
+
+	if (UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(HealthBarHideTimer);
+		World->GetTimerManager().SetTimer(
+			HealthBarHideTimer,
+			this,
+			&AEnemy::HideHealthBar,
+			HealthBarVisibleDuration,
+			false
+		);
+	}
+}
+void AEnemy::HideHealthBar()
+{
+    if (!IsValid(this) || !EnemyHealthBar) return;
+
+    EnemyHealthBar->SetVisibility(ESlateVisibility::Hidden);
 }
 void AEnemy::Tick(float DeltaTime)
 {
@@ -96,6 +122,11 @@ void AEnemy::PossessedBy(AController* NewController)
 }
 void AEnemy::Die()
 {
+    if(UWorld* World = GetWorld())
+	{
+		World->GetTimerManager().ClearTimer(HealthBarHideTimer);
+	}
+
     Super::Die();
 
     if(CombatComponent)
@@ -110,6 +141,9 @@ void AEnemy::Die()
     {
        HealthWidget->SetVisibility(false);
     }
+
+    EnemyHealthBar = nullptr;
+
     if(AIComponent)
     {
         AIComponent->StopAI();
