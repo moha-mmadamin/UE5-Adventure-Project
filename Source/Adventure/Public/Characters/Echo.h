@@ -9,6 +9,7 @@
 #include "Components/Health/HealthComponent.h"
 #include "Echo.generated.h"
 
+// Forward Declarations
 class USpringArmComponent;
 class UCameraComponent;
 class UGroomComponent;
@@ -35,16 +36,25 @@ public:
  protected:
 	virtual void BeginPlay() override;
 
+	/*
+	Camera
+	*/
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USpringArmComponent* CameraBoom;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UCameraComponent* ViewCamera;
 
+
+	// Input
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputMappingContext* EchoContex;
 
-	// Input actions
+	/*
+	Input Callbacks
+	*/
+
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 	virtual void Jump() override;
@@ -79,12 +89,18 @@ public:
 	UInputAction* ReloadAction;
 
 private:
+
+	/*
+	Action Handlers
+	*/
+
 	void StartAiming();
 	void StopAiming();
 	void Sprint();
 	void StopSprint();
 	void Fire();
 	void Reload();
+
 	void ShowCrosshairWidget();
 	void HideCrosshairWidget();
 	void ShowAmmoWidget();
@@ -93,25 +109,28 @@ private:
 	UFUNCTION(BlueprintCallable)
 	virtual void Die() override;
 
+	// Sensitivity
 	UPROPERTY(EditAnywhere, Category = "Sensitivity")
 	float LookSensitivity = 1.0f;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
-	UAIPerceptionStimuliSourceComponent* StimuliSourceComponent;
 	
+	/*
+	Hair
+	*/
+
 	UPROPERTY(VisibleAnywhere, Category = Hair)
 	UGroomComponent* Hair;
 	
 	UPROPERTY(VisibleAnywhere, Category = Hair)
 	UGroomComponent* Eyebrows;
 
+	/*
+	UI
+	*/
+
     UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UAmmoWidget> AmmoWidgetClass;
 
 	UAmmoWidget* AmmoWidget;
-
-	UPROPERTY(VisibleAnywhere, Category = "Health")
-    UHealthComponent* HealthComponent;
 
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UHealthBarWidget> HealthWidgetClass;
@@ -128,4 +147,8 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	UCrosshairWidget* CrosshairWidget;
+
+	// Health
+	UPROPERTY(VisibleAnywhere, Category = "Health")
+    UHealthComponent* HealthComponent;
 };

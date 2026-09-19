@@ -5,6 +5,7 @@
 #include "Characters/CharacterTypes.h"
 #include "CombatComponent.generated.h"
 
+// Forward Declarations
 class ABaseCharacter;
 class ABaseWeapon;
 
@@ -17,21 +18,35 @@ public:
 	UCombatComponent();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	/*
+	Combat Actions
+	*/
+
 	void Fire();
 	void Reload();
+	void Disarm();
+	void Arm();
+
 	void StartAiming();
 	void StopAiming();
+
 	void EquipWeapon(ABaseWeapon* Weapon);
 	void SpawnDefaultWeapon();
 	void ToggleWeapon();
+
+	/*
+	State Checks
+	*/
 
 	bool CanReload() const;
 	bool CanFire() const;
 	bool CanAim() const;
 	bool CanArm() const;
 	bool CanDisarm() const;
-	void Disarm();
-	void Arm();
+
+	/*
+	Anim Notify
+	*/
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
 	void FinishWeaponEquip();
@@ -45,11 +60,19 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	/*
+	Sockets
+	*/
+
 	UPROPERTY(EditDefaultsOnly, Category="Combat")
 	FName WeaponHandSocket = FName("RightHandSocket");
 
 	UPROPERTY(EditDefaultsOnly, Category="Combat")
 	FName WeaponHolsterSocket = FName("PistolSocket");
+
+	/*
+	Weapon Setup
+	*/
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat")
 	TSubclassOf<class ABaseWeapon> WeaponClass;
@@ -65,7 +88,7 @@ private:
 	ABaseWeapon* EquippedWeapon;
 
 	/*
-	Combat State
+	State
 	*/
 
 	UPROPERTY(BlueprintReadOnly, Category="Combat", meta=(AllowPrivateAccess="true"))

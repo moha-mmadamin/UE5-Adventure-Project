@@ -7,6 +7,7 @@
 #include "AIController.h"
 #include "AIComponent.generated.h"
 
+// Forward Declarations
 class AEnemy;
 class AActor;
 class UCombatComponent;
@@ -19,7 +20,9 @@ class ADVENTURE_API UAIComponent : public UActorComponent
 
 public:	
 	UAIComponent();
+
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
     void InitializeAI();
     void SetEnemyState(EEnemyState NewState);
     void StopAI();
@@ -74,7 +77,9 @@ private:
     void OnMoveCompleted(FAIRequestID RequestID,const FPathFollowingResult& Result);
     void OnPatrolWaitFinished();
 
-private:
+    /*
+    References
+    */
 
     UPROPERTY()
     AEnemy* OwnerEnemy;

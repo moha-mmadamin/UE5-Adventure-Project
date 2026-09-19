@@ -5,6 +5,7 @@
 #include "Perception/AIPerceptionTypes.h"
 #include "PerceptionComponent.generated.h"
 
+// Forward Declarations
 class AEnemy;
 class UAIComponent;
 
@@ -22,8 +23,9 @@ protected:
 	virtual void BeginPlay() override;
 
 private:	
+
 	/*
-	AI senses
+	AI Perception
 	*/
 
 	void HandleSight(AActor* DetectedActor);
@@ -33,6 +35,10 @@ private:
 
 	UFUNCTION()
 	void OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+
+	/*
+	References
+	*/
 
     UPROPERTY()
     AEnemy* OwnerEnemy;
@@ -44,6 +50,11 @@ private:
     UAIPerceptionComponent* AIPerceptionComponent;
 		
 public:
+
+	/*
+	Perception Events
+	*/
+
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnEnemySightDetected, AActor*);
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnEnemySightLost, AActor*);
 	DECLARE_MULTICAST_DELEGATE_OneParam(FOnEnemyNoiseHeard, const FVector&);

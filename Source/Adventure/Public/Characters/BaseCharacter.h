@@ -6,6 +6,7 @@
 #include "CharacterTypes.h"
 #include "BaseCharacter.generated.h"
 
+// Forward Declarations
 class AItem;
 class UCombatComponent;
 
@@ -20,6 +21,10 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	void SetMovementSpeed(float Speed);
+
+	/*
+	Play Montages
+	*/
 
 	void PlayFireMontage(const FName& SectionName);
 	void PlayEquipMontage(const FName& SectionName);
@@ -61,6 +66,7 @@ protected:
 	/*
 	State
 	*/
+
 	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	ECharacterState CharacterState = ECharacterState::ECS_Alive;
 

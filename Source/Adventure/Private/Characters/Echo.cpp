@@ -10,7 +10,6 @@
 #include "GroomComponent.h"
 #include "UI/CrosshairWidget.h"
 #include "Components/Image.h"
-#include "Items/Weapons/Weapon.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/Combat/CombatComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -53,17 +52,6 @@ AEcho::AEcho()
     GetMesh()->SetGenerateOverlapEvents(false);
 
     HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
-
-    //StimuliSourceComponent =
-    //    CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(
-    //        TEXT("StimuliSource")
-    //    );
-
-    //StimuliSourceComponent->RegisterForSense(
-    //    UAISense_Sight::StaticClass()
-    //);
-
-    //StimuliSourceComponent->bAutoRegister = true;
 };
 void AEcho::BeginPlay()
 {

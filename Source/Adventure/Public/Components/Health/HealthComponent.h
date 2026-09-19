@@ -4,6 +4,10 @@
 #include "Components/ActorComponent.h"
 #include "HealthComponent.generated.h"
 
+/*
+Health / Armor Delegates
+*/
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(
     FOnHealthChanged,
     float,
@@ -27,14 +31,22 @@ public:
 	UHealthComponent();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+    /*
+    Health Actions
+    */
+
 	UFUNCTION(BlueprintCallable, Category = "Health")
     void TakeDamage(float DamageAmount);
 
 	UFUNCTION(BlueprintCallable, Category = "Health")
     void Heal(float HealAmount);
 
-	float GetHealthPercent() const;
-	float GetArmorPercent() const;
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	void SetCurrentHealth(float NewHealth);
+
+    /*
+    Health Getters
+    */
 
     UFUNCTION(BlueprintPure, Category = "Health")
     float GetCurrentHealth() const;
@@ -42,17 +54,26 @@ public:
     UFUNCTION(BlueprintPure, Category = "Health")
 	float GetMaxHealth() const;
 
+	float GetHealthPercent() const;
+
+    /*
+    Armor Getters
+    */
+
     UFUNCTION(BlueprintPure, Category = "Armor")
     float GetCurrentArmor() const;
 
     UFUNCTION(BlueprintPure, Category = "Armor")
     float GetMaxArmor() const;
-	
-	UFUNCTION(BlueprintCallable, Category = "Health")
-	void SetCurrentHealth(float NewHealth);
+
+	float GetArmorPercent() const;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Armor")
     bool bHasArmor = false;
+
+    /*
+    Events
+    */
 
     UPROPERTY(BlueprintAssignable)
     FOnHealthChanged OnHealthChanged;
@@ -67,14 +88,27 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+
+    /*
+    Armor Regeneration
+    */
+
     void RegenerateArmor(float DeltaTime);
     float TimeSinceLastDamage = 0.0f;
+
+    /*
+    Health
+    */
 
 	UPROPERTY(EditAnywhere, Category = "Health")
     float MaxHealth = 200.0f;
 
 	UPROPERTY(VisibleAnywhere, Category = "Health")
     float CurrentHealth = 200.0f;
+
+    /*
+    Armor
+    */
 
 	UPROPERTY(EditAnywhere, Category = "Armor")
     float MaxArmor = 100.0f;

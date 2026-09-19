@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Item.generated.h"
 
+// Forward Declarations
 class USphereComponent;
 
 enum class EItemState : uint8

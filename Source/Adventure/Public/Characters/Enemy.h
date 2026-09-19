@@ -7,6 +7,7 @@
 #include "UI/HealthBarWidget.h"
 #include "Enemy.generated.h"
 
+// Forward Declarations
 class AAIController;
 class UStaticMeshComponent;
 class UPerceptionComponent;
@@ -36,11 +37,6 @@ private:
     UFUNCTION()
     void ShowHealthBar(float HealthPercent);
 
-    FTimerHandle HealthBarHideTimer;
-
-    UPROPERTY(EditAnywhere, Category = "UI")
-    float HealthBarVisibleDuration = 5.0f;
-
     UFUNCTION()
     virtual void Die() override;
 
@@ -57,17 +53,11 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
     UAIPerceptionComponent* AIPerceptionComponent;
 
-    /*
-    Controller
-    */
-
+    // Controller
     UPROPERTY()
     AAIController* EnemyController;
 
-    /*
-    Equipment
-    */
-
+    // Equipment
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
     UStaticMeshComponent* HolsterMesh;
 
@@ -95,11 +85,15 @@ private:
     UEnemyHealthBar* EnemyHealthBar;
 
     /*
-    Combat Timers
+    Timers
     */
 
     FTimerHandle AimTimer;
     FTimerHandle AttackTimer;
+    FTimerHandle HealthBarHideTimer;
+
+    UPROPERTY(EditAnywhere, Category = "UI")
+    float HealthBarVisibleDuration = 5.0f;
 
 public:
     FORCEINLINE UAIComponent* GetAIComponent() const { return AIComponent; }
