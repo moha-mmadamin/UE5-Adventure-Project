@@ -17,6 +17,7 @@ class UAnimMontage;
 class UInputMappingContext;
 class UInputAction;
 class AActor;
+class UCrosshairWidget;
 class UAIPerceptionStimuliSourceComponent;
 
 UCLASS()
@@ -123,7 +124,8 @@ private:
 	UUserWidget* DeathScreenWidget;
 
 	UPROPERTY(EditAnywhere, Category = "UI")
-	TSubclassOf<UUserWidget> CrosshairClass;
+	TSubclassOf<UCrosshairWidget> CrosshairClass;
 
-	UUserWidget* CrosshairWidget;
+	UPROPERTY(BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
+	UCrosshairWidget* CrosshairWidget;
 };

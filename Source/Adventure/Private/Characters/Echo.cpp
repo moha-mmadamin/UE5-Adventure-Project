@@ -1,5 +1,4 @@
 #include "Characters/Echo.h"
-#include "Characters/Echo.h"
 #include "Animation/AnimMontage.h"
 #include "Camera/CameraComponent.h"
 #include "Characters/CharacterTypes.h"
@@ -9,6 +8,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GroomComponent.h"
+#include "UI/CrosshairWidget.h"
+#include "Components/Image.h"
 #include "Items/Weapons/Weapon.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/Combat/CombatComponent.h"
@@ -89,7 +90,7 @@ void AEcho::BeginPlay()
     }
     if(CrosshairClass)
     {
-        CrosshairWidget = CreateWidget<UUserWidget>(GetWorld(), CrosshairClass);
+        CrosshairWidget = CreateWidget<UCrosshairWidget>(GetWorld(), CrosshairClass);
         if(CrosshairWidget)
         {
             CrosshairWidget->AddToViewport();
@@ -165,10 +166,15 @@ void AEcho::StopSprint()
 }
 void AEcho::Fire()
 {
-    if(CombatComponent)
+    if(!CombatComponent) return;
+
+    if(CrosshairWidget && CombatComponent->CanFire())
     {
-        CombatComponent->Fire();
+        CrosshairWidget->OnFire();
     }
+
+    CombatComponent->Fire();
+
 }
 void AEcho::Reload()
 {

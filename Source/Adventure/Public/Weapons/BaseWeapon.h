@@ -26,6 +26,8 @@ public:
 	bool Fire();
 	void ReloadAmmo();
 	bool CanReloadAmmo() const;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Weapon")
 	bool CanFire() const;
 
 	UPROPERTY(BlueprintAssignable)
