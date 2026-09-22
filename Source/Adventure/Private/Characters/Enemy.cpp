@@ -30,7 +30,7 @@ AEnemy::AEnemy()
 
     AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComponent"));
     PerceptionComponent = CreateDefaultSubobject<UPerceptionComponent>(TEXT("PerceptionComponent"));
-    AIComponent = CreateDefaultSubobject<UAIComponent>(TEXT("AIComponent"));
+    //AIComponent = CreateDefaultSubobject<UAIComponent>(TEXT("AIComponent"));
     HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
     HealthWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthWidget"));
 
@@ -80,6 +80,7 @@ void AEnemy::BeginPlay()
         HealthComponent->OnHealthChanged.AddDynamic(this, &AEnemy::ShowHealthBar);
         HealthComponent->OnDeath.AddDynamic(this, &AEnemy::Die);
     }
+
 }
 void AEnemy::ShowHealthBar(float HealthPercent)
 {
@@ -109,17 +110,6 @@ void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
-void AEnemy::PossessedBy(AController* NewController)
-{
-    Super::PossessedBy(NewController);
-
-    EnemyController = Cast<AAIController>(NewController);
-
-    if(AIComponent)
-    {
-        AIComponent->InitializeAI();
-    }
-}
 void AEnemy::Die()
 {
     if(UWorld* World = GetWorld())
@@ -144,10 +134,10 @@ void AEnemy::Die()
 
     EnemyHealthBar = nullptr;
 
-    if(AIComponent)
-    {
-        AIComponent->StopAI();
-    }
+    //if(AIComponent)
+    //{
+    //    AIComponent->StopAI();
+    //}
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     SetLifeSpan(5.0f);
 }

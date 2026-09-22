@@ -26,7 +26,7 @@ class ADVENTURE_API AEnemy : public ABaseCharacter
 public:
 	AEnemy();
 	virtual void Tick(float DeltaTime) override;
-	virtual void PossessedBy(AController* NewController) override;
+
 
 protected:
 	virtual void BeginPlay() override;
@@ -47,8 +47,8 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
     UPerceptionComponent* PerceptionComponent;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-    UAIComponent* AIComponent;
+    //UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+    //UAIComponent* AIComponent;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
     UAIPerceptionComponent* AIPerceptionComponent;
@@ -96,7 +96,7 @@ private:
     float HealthBarVisibleDuration = 5.0f;
 
 public:
-    FORCEINLINE UAIComponent* GetAIComponent() const { return AIComponent; }
+    //FORCEINLINE UAIComponent* GetAIComponent() const { return AIComponent; }
     FORCEINLINE UPerceptionComponent* GetPerceptionComponent() const { return PerceptionComponent; }
     FORCEINLINE UAIPerceptionComponent* GetAIPerceptionComponent() const { return AIPerceptionComponent; }
 };

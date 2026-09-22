@@ -284,32 +284,32 @@ void UAIComponent::OnPatrolWaitFinished()
     if(!PatrolTarget) return;
     MoveToActor(PatrolTarget);
 }
-void UAIComponent::InitializeAI()
-{
-    if (!OwnerEnemy)
-    {
-        OwnerEnemy = Cast<AEnemy>(GetOwner());
-    }
-    if(!OwnerEnemy) return;
-
-    EnemyController = Cast<AAIController>(OwnerEnemy->GetController());
-    if(!EnemyController) return;
-
-    EnemyController->GetPathFollowingComponent()->OnRequestFinished.AddUObject(
-            this,
-            &UAIComponent::OnMoveCompleted
-        );
-
-    if(PatrolTarget)
-    {
-        SetEnemyState(EEnemyState::EES_Patrol);
-        MoveToActor(PatrolTarget);
-    }
-    else
-    {
-        SetEnemyState(EEnemyState::EES_Idle);
-    }
-}
+//void UAIComponent::InitializeAI()
+//{
+//    if (!OwnerEnemy)
+//    {
+//        OwnerEnemy = Cast<AEnemy>(GetOwner());
+//    }
+//    if(!OwnerEnemy) return;
+//
+//    EnemyController = Cast<AAIController>(OwnerEnemy->GetController());
+//    if(!EnemyController) return;
+//
+//    EnemyController->GetPathFollowingComponent()->OnRequestFinished.AddUObject(
+//            this,
+//            &UAIComponent::OnMoveCompleted
+//        );
+//
+//    if(PatrolTarget)
+//    {
+//        SetEnemyState(EEnemyState::EES_Patrol);
+//        MoveToActor(PatrolTarget);
+//    }
+//    else
+//    {
+//        SetEnemyState(EEnemyState::EES_Idle);
+//    }
+//}
 void UAIComponent::BeginSearch()
 {
     if(!EnemyController) return;

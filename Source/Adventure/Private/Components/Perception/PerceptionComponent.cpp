@@ -19,7 +19,7 @@ void UPerceptionComponent::BeginPlay()
 
     if(!OwnerEnemy) return;
 
-    AIComponent = OwnerEnemy->GetAIComponent();
+    //AIComponent = OwnerEnemy->GetAIComponent();
     AIPerceptionComponent = OwnerEnemy->GetAIPerceptionComponent();
 
     if(!AIPerceptionComponent) return;
