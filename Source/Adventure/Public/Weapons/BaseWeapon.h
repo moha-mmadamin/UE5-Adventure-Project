@@ -40,19 +40,17 @@ protected:
 	Weapon Behaviour
 	*/
 
-	//void FireTrace(FHitResult& OutHit) const;
 	virtual float GetDamageForBone(FName BoneName) const;
 	virtual void ConsumeAmmo();
 	virtual void SpawnParticle() const;
 	virtual void SpawnBlood(const FHitResult& HitResult);
 	virtual void ApplyDamage(const FHitResult& HitResult);
-	//FVector GetShotDirection(const FVector& TargetPoint) const;
 
 	/*
 	Ammo
 	*/
 
-	UPROPERTY(VisibleAnywhere, Category="Ammo")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Ammo")
 	int32 CurrentAmmo = 15;
 
 	UPROPERTY(EditDefaultsOnly, Category="Ammo")

@@ -1,4 +1,5 @@
 #include "Components/Health/HealthComponent.h"
+#include "Perception/AISense_Damage.h"
 
 UHealthComponent::UHealthComponent()
 {
@@ -46,7 +47,7 @@ void UHealthComponent::RegenerateArmor(float DeltaTime)
         OnArmorChanged.Broadcast(GetArmorPercent());
     }
 }
-void UHealthComponent::TakeDamage(float DamageAmount)
+void UHealthComponent::TakeDamage(float DamageAmount, AActor* DamageCauser)
 {
     if(DamageAmount <= 0.f || CurrentHealth <= 0.f) return;
 
@@ -54,22 +55,30 @@ void UHealthComponent::TakeDamage(float DamageAmount)
 
     float RemainingDamage = DamageAmount;
 
-    if(bHasArmor && CurrentArmor > 0.f)
+    // Armor
+    if (bHasArmor && CurrentArmor > 0.f)
     {
         const float ArmorDamage = FMath::Min(CurrentArmor, RemainingDamage);
-
         CurrentArmor -= ArmorDamage;
         RemainingDamage -= ArmorDamage;
-
         OnArmorChanged.Broadcast(GetArmorPercent());
     }
 
+    // Health
     if (RemainingDamage > 0.f)
     {
         CurrentHealth = FMath::Clamp(CurrentHealth - RemainingDamage, 0.0f, MaxHealth);
-
         OnHealthChanged.Broadcast(GetHealthPercent());
     }
+
+    UAISense_Damage::ReportDamageEvent(
+        GetWorld(),
+        GetOwner(),
+        DamageCauser,
+        DamageAmount,
+        DamageCauser->GetActorLocation(),
+        GetOwner()->GetActorLocation()
+    );
 
     if (CurrentHealth <= 0.f)
     {

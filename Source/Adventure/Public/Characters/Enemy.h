@@ -2,21 +2,19 @@
 
 #include "CoreMinimal.h"
 #include "BaseCharacter.h"
-#include "EnemyTypes.h"
 #include "CharacterTypes.h"
 #include "UI/HealthBarWidget.h"
 #include "Enemy.generated.h"
 
 // Forward Declarations
-class AAIController;
+class AEnemyAIController;
 class UStaticMeshComponent;
-class UPerceptionComponent;
 class UAIComponent;
-class UAIPerceptionComponent;
-class UAISenseConfig_Sight;
 class UHealthComponent;
 class UWidgetComponent;
 class UEnemyHealthBar;
+class UBaseWeapon;
+
 
 UCLASS()
 class ADVENTURE_API AEnemy : public ABaseCharacter
@@ -27,9 +25,15 @@ public:
 	AEnemy();
 	virtual void Tick(float DeltaTime) override;
 
-
 protected:
 	virtual void BeginPlay() override;
+
+    /*
+    Behavior tree Combat section
+    */
+
+    UFUNCTION(BlueprintCallable)
+    void Reload();
 
 private:
     void HideHealthBar();
@@ -40,26 +44,17 @@ private:
     UFUNCTION()
     virtual void Die() override;
 
-    /*
-    Components
-    */
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-    UPerceptionComponent* PerceptionComponent;
-
-    //UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-    //UAIComponent* AIComponent;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-    UAIPerceptionComponent* AIPerceptionComponent;
-
     // Controller
     UPROPERTY()
-    AAIController* EnemyController;
+    AEnemyAIController* EnemyController;
 
     // Equipment
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Equipment", meta = (AllowPrivateAccess = "true"))
     UStaticMeshComponent* HolsterMesh;
+
+    //Navigation
+    UPROPERTY(EditInstanceOnly, Category="AI Navigation")
+    TArray<AActor*> PatrolTargets;
 
     /*
     Combat Settings
@@ -70,6 +65,12 @@ private:
 
     UPROPERTY(EditAnywhere, Category = "Combat")
     float AimDelay = 0.5f;
+
+    UPROPERTY(EditAnywhere, Category="Combat")
+    float StopChaseRange = 1500.f;
+
+    UPROPERTY(EditAnywhere, Category="Combat")
+    float ChaseAcceptanceRadius = 800.f;
 
     /*
     Health
@@ -91,12 +92,20 @@ private:
     FTimerHandle AimTimer;
     FTimerHandle AttackTimer;
     FTimerHandle HealthBarHideTimer;
+    FTimerHandle PatrolWaitTimer;
 
     UPROPERTY(EditAnywhere, Category = "UI")
     float HealthBarVisibleDuration = 5.0f;
 
+    /*
+    Timers
+    */
+
+    FTimerHandle PatrolTimer;
+    FTimerHandle SearchTimer;
+    FTimerHandle LOSTimer;
+    FTimerHandle ChaseTimer;
+
 public:
-    //FORCEINLINE UAIComponent* GetAIComponent() const { return AIComponent; }
-    FORCEINLINE UPerceptionComponent* GetPerceptionComponent() const { return PerceptionComponent; }
-    FORCEINLINE UAIPerceptionComponent* GetAIPerceptionComponent() const { return AIPerceptionComponent; }
+    const TArray<AActor*>& GetPatrolTargets() const {return PatrolTargets;}
 };

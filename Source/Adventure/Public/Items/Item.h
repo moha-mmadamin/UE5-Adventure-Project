@@ -49,7 +49,7 @@ protected:
 	UFUNCTION()
 	virtual void OnSphereEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	EItemState ItemState = EItemState::EIS_Hovering;
+	EItemState ItemState = EItemState::EIS_Equipped;
 
 	UPROPERTY(VisibleAnywhere)
 	USphereComponent* Sphere;

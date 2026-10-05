@@ -7,7 +7,6 @@
 
 // Forward Declarations
 class AEnemy;
-class UAIComponent;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ADVENTURE_API UPerceptionComponent : public UActorComponent
@@ -42,9 +41,6 @@ private:
 
     UPROPERTY()
     AEnemy* OwnerEnemy;
-
-    UPROPERTY()
-    UAIComponent* AIComponent;
 
     UPROPERTY(VisibleAnywhere)
     UAIPerceptionComponent* AIPerceptionComponent;

@@ -4,7 +4,6 @@
 #include "Perception/AISense_Sight.h"
 #include "Perception/AISense_Hearing.h"
 #include "Perception/AISense_Damage.h"
-#include "Components/AI/AIComponent.h"
 #include "Characters/Enemy.h"
 
 UPerceptionComponent::UPerceptionComponent()
@@ -13,16 +12,10 @@ UPerceptionComponent::UPerceptionComponent()
 }
 void UPerceptionComponent::BeginPlay()
 {
-	Super::BeginPlay();
+    Super::BeginPlay();
 
     OwnerEnemy = Cast<AEnemy>(GetOwner());
-
     if(!OwnerEnemy) return;
-
-    //AIComponent = OwnerEnemy->GetAIComponent();
-    AIPerceptionComponent = OwnerEnemy->GetAIPerceptionComponent();
-
-    if(!AIPerceptionComponent) return;
 
     AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(
         this,

@@ -4,21 +4,20 @@
 #include "Components/StaticMeshComponent.h"
 #include "Weapons/BaseWeapon.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/AI/AIComponent.h"
-#include "Components/Perception/PerceptionComponent.h"
 #include "Components/Combat/CombatComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Components/Health/HealthComponent.h"
 #include "UI/HealthBarWidget.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Perception/AIPerceptionComponent.h"
-#include "Perception/AISenseConfig_Sight.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "UI/EnemyHealthBar.h"
+#include "AI/EnemyAIController.h"
 
 AEnemy::AEnemy()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+    GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = true;
@@ -28,9 +27,6 @@ AEnemy::AEnemy()
     HolsterMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     HolsterMesh->SetGenerateOverlapEvents(false);
 
-    AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComponent"));
-    PerceptionComponent = CreateDefaultSubobject<UPerceptionComponent>(TEXT("PerceptionComponent"));
-    //AIComponent = CreateDefaultSubobject<UAIComponent>(TEXT("AIComponent"));
     HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
     HealthWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthWidget"));
 
@@ -61,6 +57,13 @@ void AEnemy::BeginPlay()
             TEXT("HolsterSocket")
         );
     }
+
+    if (HealthComponent)
+    {
+        HealthComponent->OnHealthChanged.AddDynamic(this, &AEnemy::ShowHealthBar);
+        HealthComponent->OnDeath.AddDynamic(this, &AEnemy::Die);
+    }
+
     if (HealthWidget)
     {
         UUserWidget* Widget = HealthWidget->GetUserWidgetObject();
@@ -75,12 +78,21 @@ void AEnemy::BeginPlay()
             }
         }
     }
-    if(HealthComponent)
+}
+void AEnemy::Reload()
+{
+    ABaseWeapon* Weapon = CombatComponent->GetEquippedWeapon();
+    if(!Weapon) return;
+    if(Weapon->GetCurrentAmmo() <= 0)
     {
-        HealthComponent->OnHealthChanged.AddDynamic(this, &AEnemy::ShowHealthBar);
-        HealthComponent->OnDeath.AddDynamic(this, &AEnemy::Die);
+        if(CombatComponent->GetCombatState() ==ECombatState::ECS_Aiming)
+        {
+            CombatComponent->StopAiming();
+        }
+        CombatComponent->Reload();
+        return;
     }
-
+    return;
 }
 void AEnemy::ShowHealthBar(float HealthPercent)
 {
@@ -115,29 +127,27 @@ void AEnemy::Die()
     if(UWorld* World = GetWorld())
 	{
 		World->GetTimerManager().ClearTimer(HealthBarHideTimer);
+        //World->GetTimerManager().ClearTimer(LookAroundTimer);
 	}
+
+    if (CombatComponent)
+    {
+        ABaseWeapon* EquippedWeapon = CombatComponent->GetEquippedWeapon();
+
+        if (EquippedWeapon)
+        {
+            EquippedWeapon->SetLifeSpan(5.0f);
+        }
+    }
 
     Super::Die();
 
-    if(CombatComponent)
-    {
-        ABaseWeapon* Weapon = CombatComponent->GetEquippedWeapon();
-        if(Weapon)
-        {
-            Weapon->SetLifeSpan(5.0f);
-        }
-    }    
     if(HealthWidget)
     {
        HealthWidget->SetVisibility(false);
     }
 
     EnemyHealthBar = nullptr;
-
-    //if(AIComponent)
-    //{
-    //    AIComponent->StopAI();
-    //}
     GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     SetLifeSpan(5.0f);
 }

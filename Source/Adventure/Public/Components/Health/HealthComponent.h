@@ -35,8 +35,8 @@ public:
     Health Actions
     */
 
-	UFUNCTION(BlueprintCallable, Category = "Health")
-    void TakeDamage(float DamageAmount);
+    UFUNCTION(BlueprintCallable, Category = "Health")
+    void TakeDamage(float DamageAmount, AActor* DamageCauser);
 
 	UFUNCTION(BlueprintCallable, Category = "Health")
     void Heal(float HealAmount);

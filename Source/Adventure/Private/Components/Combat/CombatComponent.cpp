@@ -81,9 +81,10 @@ bool UCombatComponent::CanAim() const
 }
 bool UCombatComponent::CanArm() const
 {
-    return CombatState == ECombatState::ECS_Idle &&
+    return EquippedWeapon &&
         WeaponState == EWeaponState::EWS_Unarmed && 
-        EquippedWeapon;
+        CombatState == ECombatState::ECS_Idle &&
+        Character->GetCharacterState() == ECharacterState::ECS_Alive;;
 }
 bool UCombatComponent::CanDisarm() const
 {

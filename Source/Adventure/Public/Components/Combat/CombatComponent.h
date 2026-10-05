@@ -22,12 +22,21 @@ public:
 	Combat Actions
 	*/
 
+	UFUNCTION(BlueprintCallable)
 	void Fire();
+
 	void Reload();
+
+	UFUNCTION(BlueprintCallable)
 	void Disarm();
+
+	UFUNCTION(BlueprintCallable)
 	void Arm();
 
+	UFUNCTION(BlueprintCallable)
 	void StartAiming();
+
+	UFUNCTION(BlueprintCallable)
 	void StopAiming();
 
 	void EquipWeapon(ABaseWeapon* Weapon);
@@ -84,17 +93,17 @@ private:
     UPROPERTY()
     ABaseCharacter* Character;
 
-	UPROPERTY(VisibleAnywhere, Category = Weapon)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon, meta=(AllowPrivateAccess="true"))
 	ABaseWeapon* EquippedWeapon;
 
 	/*
 	State
 	*/
 
-	UPROPERTY(BlueprintReadOnly, Category="Combat", meta=(AllowPrivateAccess="true"))
+	UPROPERTY(BlueprintReadWrite, Category="Combat", meta=(AllowPrivateAccess="true"))
 	EWeaponState WeaponState = EWeaponState::EWS_Unarmed;
 
-	UPROPERTY(BlueprintReadOnly, Category="Combat", meta=(AllowPrivateAccess="true"))
+	UPROPERTY(BlueprintReadWrite, Category="Combat", meta=(AllowPrivateAccess="true"))
 	ECombatState CombatState = ECombatState::ECS_Idle;
 	
 public:

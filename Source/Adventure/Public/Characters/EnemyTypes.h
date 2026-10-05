@@ -1,5 +1,8 @@
 #pragma once
 
+#include "CoreMinimal.h"
+#include "EnemyTypes.generated.h"
+
 UENUM(BlueprintType)
 enum class EEnemyState : uint8
 {
@@ -19,4 +22,11 @@ enum class EEnemyDetectionType : uint8
     EDT_Sight UMETA(DisplayName = "Sight"),
     EDT_Hearing UMETA(DisplayName = "Hearing"),
     EDT_Damage UMETA(DisplayName = "Damage")
+};
+
+UENUM(BlueprintType)
+enum class ETestEnum : uint8
+{
+    Test1 UMETA(DisplayName = "Test1"),
+    Test2 UMETA(DisplayName = "Test2")
 };

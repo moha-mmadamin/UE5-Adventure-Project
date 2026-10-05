@@ -1,4 +1,5 @@
 #include "Weapons/BaseWeapon.h"
+#include "Perception/AISense_Hearing.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/Health/HealthComponent.h"
@@ -8,6 +9,7 @@ ABaseWeapon::ABaseWeapon()
 }
 void ABaseWeapon::BeginPlay()
 {
+    Super::BeginPlay();
 }
 void ABaseWeapon::ConsumeAmmo()
 {
@@ -47,25 +49,31 @@ void ABaseWeapon::SpawnBlood(const FHitResult& HitResult)
 }
 void ABaseWeapon::ApplyDamage(const FHitResult& HitResult)
 {
-    if(!HitResult.bBlockingHit) return;
+    if (!HitResult.bBlockingHit) return;
 
     AActor* HitActor = HitResult.GetActor();
-    if(!HitActor) return;
+    if (!HitActor) return;
 
     UHealthComponent* HealthComponent = HitActor->FindComponentByClass<UHealthComponent>();
-    if(!HealthComponent) return;
+    if (!HealthComponent) return;
 
     const float Damage = GetDamageForBone(HitResult.BoneName);
 
     UE_LOG(LogTemp, Warning, TEXT("DAMAGE: %.1f -> %s"), Damage, *GetNameSafe(HitActor));
 
-    HealthComponent->TakeDamage(Damage);
+    AActor* DamageCauser = GetOwner();
+
+    UE_LOG(
+        LogTemp,
+        Warning,
+        TEXT("DAMAGE: %.1f -> %s | CAUSER: %s"),
+        Damage,
+        *GetNameSafe(HitActor),
+        *GetNameSafe(DamageCauser)
+    );
+
+    HealthComponent->TakeDamage(Damage, DamageCauser);
 }
-//FVector ABaseWeapon::GetShotDirection(const FVector& TargetPoint) const
-//{
-//	const FVector BarrelLocation = ItemMesh->GetSocketLocation(TEXT("Barrel"));
-//	return (TargetPoint - BarrelLocation).GetSafeNormal();
-//}
 void ABaseWeapon::StartFireCooldown()
 {
 	bCanFire = false;
@@ -137,6 +145,18 @@ bool ABaseWeapon::Fire()
     ApplyDamage(ShotHit);
     SpawnBlood(ShotHit);
 	SpawnParticle();
+
+    if (GetOwner())
+    {
+        UAISense_Hearing::ReportNoiseEvent(
+            GetWorld(),
+            GetOwner()->GetActorLocation(),
+            1.0f,
+            GetOwner(),
+            2000.f
+        );
+    }
+
 	ConsumeAmmo();
 	StartFireCooldown();
 
