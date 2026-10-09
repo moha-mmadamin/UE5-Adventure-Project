@@ -125,7 +125,6 @@ void AEnemyAIController::OnStateChanged(EEnemyState PreviousState, EEnemyState N
     switch (NewState)
     {
     case EEnemyState::EES_Searching:
-    case EEnemyState::EES_Combat:
     case EEnemyState::EES_Patrol:
     case EEnemyState::EES_Investigating:
 
@@ -133,7 +132,7 @@ void AEnemyAIController::OnStateChanged(EEnemyState PreviousState, EEnemyState N
         break;
 
     case EEnemyState::EES_TakingCover:
-    case EEnemyState::EES_Chasing:
+    case EEnemyState::EES_Combat:
 
         Enemy->SetMovementSpeed(ChaseSpeed);
         break;
