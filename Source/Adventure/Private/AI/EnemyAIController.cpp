@@ -152,11 +152,9 @@ AActor* AEnemyAIController::SelectNextPatrolTarget()
     if(!Enemy) return nullptr;
 
     const TArray<AActor*>& Targets = Enemy->GetPatrolTargets();
-
     if(Targets.Num() == 0) return nullptr;
 
     TArray<AActor*> ValidTargets;
-
     for (AActor* Target : Targets)
     {
         if (Target && Target != PatrolTarget)
