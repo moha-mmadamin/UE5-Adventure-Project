@@ -102,6 +102,8 @@ void AEcho::BeginPlay()
 void AEcho::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+
+    RecoverCameraRecoil(DeltaTime);
 }
 void AEcho::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
@@ -154,14 +156,18 @@ void AEcho::StopSprint()
 }
 void AEcho::Fire()
 {
-    if(!CombatComponent) return;
+    if (!CombatComponent) return;
 
-    if(CrosshairWidget && CombatComponent->CanFire())
+    if (!CombatComponent->CanFire()) return;
+
+    if (CrosshairWidget)
     {
         CrosshairWidget->OnFire();
     }
 
     CombatComponent->Fire();
+
+    ApplyCameraRecoil();
 
 }
 void AEcho::Reload()
@@ -251,4 +257,53 @@ void AEcho::Look(const FInputActionValue& Value)
 void AEcho::Jump()
 {
     Super::Jump();
+}
+void AEcho::ApplyCameraRecoil()
+{
+    AController* PlayerController = GetController();
+    if (!PlayerController) return;
+
+    const float PitchRecoil = FMath::FRandRange(RecoilPitchMin, RecoilPitchMax);
+    const float YawRecoil = FMath::FRandRange(-RecoilYawAmount, RecoilYawAmount);
+
+    // Negative pitch moves the camera upward
+    const FRotator RecoilDelta(-PitchRecoil, YawRecoil, 0.f);
+
+    CurrentCameraRecoil += RecoilDelta;
+
+    FRotator ControlRotation = PlayerController->GetControlRotation();
+    ControlRotation += RecoilDelta;
+    PlayerController->SetControlRotation(ControlRotation);
+}
+void AEcho::RecoverCameraRecoil(float DeltaTime)
+{
+    if (CurrentCameraRecoil.IsNearlyZero()) return;
+
+    AController* PlayerController = GetController();
+    if (!PlayerController) return;
+
+    const FRotator PreviousRecoil = CurrentCameraRecoil;
+
+    CurrentCameraRecoil.Pitch = FMath::FInterpTo(
+        CurrentCameraRecoil.Pitch,
+        0.f,
+        DeltaTime,
+        RecoilRecoverySpeed
+    );
+
+    CurrentCameraRecoil.Yaw = FMath::FInterpTo(
+        CurrentCameraRecoil.Yaw,
+        0.f,
+        DeltaTime,
+        RecoilRecoverySpeed
+    );
+
+    const FRotator RecoilDelta = CurrentCameraRecoil - PreviousRecoil;
+
+    if (RecoilDelta.IsNearlyZero()) return;
+
+    FRotator ControlRotation = PlayerController->GetControlRotation();
+    ControlRotation += RecoilDelta;
+
+    PlayerController->SetControlRotation(ControlRotation);
 }

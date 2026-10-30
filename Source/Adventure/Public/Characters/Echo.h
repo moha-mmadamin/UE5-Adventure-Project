@@ -151,4 +151,24 @@ private:
 	// Health
 	UPROPERTY(VisibleAnywhere, Category = "Health")
     UHealthComponent* HealthComponent;
+
+	// Camera Recoil
+	UPROPERTY(EditAnywhere, Category = "Camera|Recoil")
+	float RecoilPitchMin = 2.5f;
+
+	UPROPERTY(EditAnywhere, Category = "Camera|Recoil")
+	float RecoilPitchMax = 3.5f;
+
+	UPROPERTY(EditAnywhere, Category = "Camera|Recoil")
+	float RecoilYawAmount = 1.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Camera|Recoil")
+	float RecoilRecoverySpeed = 6.0f;
+
+	// Current recoil offset
+	FRotator CurrentCameraRecoil = FRotator::ZeroRotator;
+
+	// Recoil Functions
+	void ApplyCameraRecoil();
+	void RecoverCameraRecoil(float DeltaTime);
 };
