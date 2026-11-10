@@ -18,12 +18,15 @@ public:
 	void BindWeapon(ABaseWeapon* Weapon);
 
 	UFUNCTION()
-	void UpdateAmmo(int CurrentAmmo, int MaxAmmo);
+	void UpdateAmmo(int32 CurrentAmmoValue, int32 ReserveAmmoValue);
 
 private:
 	UPROPERTY()
 	ABaseWeapon* CurrentWeapon;
 
-	UPROPERTY(meta=(BindWidget))
-	UTextBlock* AmmoText;
+	UPROPERTY(meta = (BindWidget))
+    UTextBlock* CurrentAmmo;
+
+    UPROPERTY(meta = (BindWidget))
+    UTextBlock* ReserveAmmo;
 };
